@@ -1,0 +1,31 @@
+<form
+  class="flex flex-col sm:flex-row items-center justify-between border border-gray-300 rounded-md overflow-hidden bg-white mb-4 shadow-sm max-w-2xl mx-auto lg:mx-0"
+  method="get" action="#">
+  <div class="flex items-center w-full sm:w-1/2 px-4 py-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none"
+      viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+    </svg>
+    <input type="text" name="q" placeholder="Job title, Keyword..."
+      class="w-full focus:outline-none text-sm text-gray-700" />
+  </div>
+  <div class="h-6 border-l border-gray-300 hidden sm:block"></div>
+  <div class="flex items-center w-full sm:w-1/2 px-4 py-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="currentColor"
+      viewBox="0 0 24 24">
+      <path
+        d="M12 2C8.13 2 5 5.13 5 9c0 4.5229 5.1954 11.0927 6.6344 12.8256.1934.2329.5378.2329.7312 0C13.8046 20.0927 19 13.5229 19 9c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+    </svg>
+    <input type="text" name="l" placeholder="Your Location"
+      class="w-full focus:outline-none text-sm text-gray-700" />
+  </div>
+  <button type="submit"
+    class="bg-blue-600 text-white px-6 py-2 text-sm whitespace-nowrap hover:bg-blue-700 w-full sm:w-auto">
+    Find Job
+  </button>
+</form>
+<p class="text-sm text-gray-500">
+  Suggestions:
+  <span class="text-blue-600">Designer, Programming, Digital Marketing, Video, Animation</span>
+</p>

@@ -1,0 +1,172 @@
+<app-header></app-header>
+
+<div class="applied-jobs-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>My Applied Jobs</h1>
+    <p class="page-subtitle">Track and manage your job applications</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading your applications...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <h3>Oops! Something went wrong</h3>
+    <p>{{ error }}</p>
+    <button (click)="loadApplications()" class="retry-btn">Try Again</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && !error && applications.length === 0" class="empty-state">
+    <div class="empty-icon">📋</div>
+    <h3>No Applications Yet</h3>
+    <p>You haven't applied to any jobs yet. Start your job search today!</p>
+    <a routerLink="/user/job-search" class="browse-jobs-button">Browse Jobs</a>
+  </div>
+
+  <!-- Applications List -->
+  <div *ngIf="!isLoading && !error && applications.length > 0" class="applications-content">
+    <!-- Stats Summary -->
+    <div class="stats-summary">
+      <div class="stat-card">
+        <div class="stat-number">{{ applications.length }}</div>
+        <div class="stat-label">Total Applications</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ getApplicationsByStatus('Under Review').length }}</div>
+        <div class="stat-label">Under Review</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ getApplicationsByStatus('Interview').length }}</div>
+        <div class="stat-label">Interviews</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ getApplicationsByStatus('Accepted').length }}</div>
+        <div class="stat-label">Accepted</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Sort by:</label>
+        <select (change)="sortApplications($event)" [value]="currentSort">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="status">Status</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Filter by status:</label>
+        <select (change)="filterByStatus($event)" [value]="selectedStatus">
+          <option value="all">All Applications</option>
+          <option value="Applied">Applied</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Interview">Interview</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Accepted">Accepted</option>
+          <option value="Withdrawn">Withdrawn</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Application Cards -->
+    <div class="application-cards">
+      <div *ngFor="let item of filteredApplications" class="application-card">
+        <!-- Job Information -->
+        <div class="job-info">
+          <div class="company-logo" [style.background-color]="item.job.color">
+            {{ getCompanyInitials(item.job.company) }}
+          </div>
+          <div class="job-details">
+            <h3 class="job-title">{{ item.job.title }}</h3>
+            <p class="company-name">{{ item.job.company }}</p>
+            <p class="job-location">{{ item.job.location }}</p>
+            <p class="job-type">{{ item.job.experience }} • ₹{{ item.job.salary | number }}</p>
+          </div>
+        </div>
+        
+        <!-- Application Status -->
+        <div class="application-details">
+          <div class="status-section">
+            <span class="status-badge {{ getStatusClass(item.application.status) }}">
+              {{ item.application.status }}
+            </span>
+            <span class="applied-date">
+              Applied on {{ item.application.applicationDate | date:'mediumDate' }}
+            </span>
+          </div>
+          
+          <!-- Actions -->
+          <div class="actions">
+            <button 
+              (click)="viewJobDetails(+item.application.jobId)" 
+              class="action-btn view-btn">
+              View Job
+            </button>
+            
+            <button 
+              *ngIf="canEdit(item.application.status)"
+              (click)="editApplication(item.application)" 
+              class="action-btn edit-btn">
+              Edit
+            </button>
+            
+            <button 
+              *ngIf="canWithdraw(item.application.status)"
+              (click)="withdrawApplication(+item.application.id!)" 
+              class="action-btn withdraw-btn">
+              Withdraw
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Application Modal -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Edit Application</h3>
+        <button (click)="closeEditModal()" class="close-btn">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" [(ngModel)]="editForm.fullName" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="editForm.email" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" [(ngModel)]="editForm.phone" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label>Cover Letter</label>
+          <textarea [(ngModel)]="editForm.coverLetter" class="form-textarea resize-none" rows="4" 
+                    (input)="updateCoverLetterCount()"></textarea>
+          <div class="word-count">
+            <span>{{ getCoverLetterWordCount() }} words | {{ getCoverLetterCharCount() }} characters</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button (click)="closeEditModal()" class="cancel-btn">Cancel</button>
+        <button (click)="saveEditedApplication()" class="save-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>

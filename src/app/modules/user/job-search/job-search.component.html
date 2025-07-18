@@ -1,0 +1,130 @@
+<app-header></app-header>
+<div class="bg-white">
+  <div class="max-w-7xl mx-auto flex flex-col items-center gap-10">
+    <!-- Search Form -->
+    <div class="w-full lg:w-1/2 pt-7 pb-7">
+      <form
+        class="flex flex-col sm:flex-row items-center justify-between border border-gray-300 rounded-md overflow-hidden bg-white mb-4 shadow-md max-w-2xl mx-auto lg:mx-0">
+        <!-- Job Search Input -->
+        <div class="flex items-center w-full sm:w-1/2 px-4 py-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+          </svg>
+          <input type="text" [(ngModel)]="searchQuery" name="q" placeholder="Job title, Keyword..."
+            class="w-full focus:outline-none text-sm text-gray-700" />
+        </div>
+
+        <!-- Divider -->
+        <div class="h-6 border-l border-gray-300 hidden sm:block"></div>
+
+        <!-- Location Input -->
+        <div class="flex items-center w-full sm:w-1/2 px-4 py-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 4.5229 5.1954 11.0927 6.6344 12.8256.1934.2329.5378.2329.7312 0C13.8046 20.0927 19 13.5229 19 9c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+          </svg>
+          <input type="text" [(ngModel)]="locationQuery" name="l" placeholder="Your Location"
+            class="w-full focus:outline-none text-sm text-gray-700" />
+        </div>
+
+        <!-- Submit Button -->
+        <button type="button" (click)="onSearch()"
+          class="bg-blue-600 text-white px-6 py-2 text-sm whitespace-nowrap hover:bg-blue-700 w-full sm:w-fit">
+          Find Job
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex flex-col lg:flex-row gap-8">
+    <!-- Filters Section - Changed from sm: to lg: for better mobile behavior -->
+    <aside class="w-full lg:w-1/4 order-1 lg:order-none">
+      <div class="bg-white p-6 rounded-lg shadow-md sticky top-8">
+        <h3 class="font-semibold text-lg mb-4 pb-2 border-b">Filters</h3>
+
+        <!-- Experience Level Filter -->
+        <div class="mb-6">
+          <h4 class="font-medium mb-3">Experience Level</h4>
+          <div class="space-y-2">
+            <div *ngFor="let option of experienceOptions" class="flex items-center">
+              <input type="checkbox" [id]="'exp-'+option" [value]="option" [(ngModel)]="selectedExperience[option]"
+                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <label [for]="'exp-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Filter -->
+        <div class="mb-6">
+          <h4 class="font-medium mb-3">Location</h4>
+          <div class="space-y-2">
+            <div *ngFor="let option of locationOptions" class="flex items-center">
+              <input type="checkbox" [id]="'loc-'+option" [value]="option" [(ngModel)]="selectedLocations[option]"
+                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <label [for]="'loc-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary Range Filter -->
+        <div class="mb-6">
+          <h4 class="font-medium mb-3">Salary Range</h4>
+          <div class="space-y-2">
+            <div *ngFor="let option of salaryOptions" class="flex items-center">
+              <input type="checkbox" [id]="'sal-'+option" [value]="option" [(ngModel)]="selectedSalaries[option]"
+                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <label [for]="'sal-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Type Filter -->
+        <div class="mb-6">
+          <h4 class="font-medium mb-3">Company Type</h4>
+          <div class="space-y-2">
+            <div *ngFor="let option of companyTypeOptions" class="flex items-center">
+              <input type="checkbox" [id]="'comp-'+option" [value]="option" [(ngModel)]="selectedCompanyTypes[option]"
+                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <label [for]="'comp-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
+            </div>
+          </div>
+        </div>
+
+        <button (click)="clearFilters()"
+          class="w-full mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm font-medium">
+          Clear All Filters
+        </button>
+      </div>
+    </aside>
+
+    <!-- Jobs List Section -->
+    <section class="w-full lg:w-3/4 order-0 lg:order-none">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">{{ filteredJobs.length }} Jobs Found</h2>
+        <select class="border px-3 py-1 rounded text-sm" [(ngModel)]="sortOption" (change)="sortJobs()">
+          <option value="relevance">Sort by: Relevance</option>
+          <option value="date">Sort by: Date</option>
+          <option value="salary">Sort by: Salary</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <ng-container *ngIf="filteredJobs.length > 0; else noResults">
+          <app-job-card *ngFor="let job of filteredJobs" [job]="job" class="mb-4"></app-job-card>
+        </ng-container>
+
+        <ng-template #noResults>
+          <div class="text-center py-10 text-gray-500">
+            No jobs found matching your criteria
+          </div>
+        </ng-template>
+      </div>
+    </section>
+  </div>
+</main>
+<app-user-footer></app-user-footer>

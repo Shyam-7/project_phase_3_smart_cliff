@@ -1,0 +1,68 @@
+/* src/app/modules/user/job-search/job-search.component.css */
+.max-h-custom {
+  max-height: calc(100vh - 300px);
+}
+
+.overflow-y-scroll {
+  overflow-y: scroll;
+}
+
+/* Custom scrollbar */
+.overflow-y-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-y-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.overflow-y-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Filter panel styling */
+.filter-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.filter-section {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+}
+
+.filter-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.filter-option label {
+  margin-left: 0.5rem;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+/* Make filter panel sticky on scroll */
+.sticky-filters {
+  position: sticky;
+  top: 1rem;
+}

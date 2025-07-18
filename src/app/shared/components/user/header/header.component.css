@@ -1,0 +1,20 @@
+@import "tailwindcss";
+.symbol {
+    @apply text-[2rem] align-text-top font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#0022ff] to-blue-300;
+}
+
+/* Dropdown Animation */
+.rotate-180 {
+    transform: rotate(180deg);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Ensure dropdown appears above other elements */
+.relative {
+    position: relative;
+}
+
+/* Smooth hover transitions */
+.transition-colors {
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}

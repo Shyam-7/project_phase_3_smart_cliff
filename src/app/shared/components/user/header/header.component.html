@@ -1,0 +1,77 @@
+<header class="flex justify-between items-center px-7 py-1 bg-white shadow sticky top-0 z-20">
+  <div class="flex items-center space-x-10">
+    <div class="symbol">Skillhunt</div>
+    <div>
+      <a routerLink="/user/user-dashboard" class="hover:text-blue-500">Home</a>
+    </div>
+  </div>
+
+  <div class="flex items-center space-x-6">
+    <!-- Reactive user observable -->
+    <ng-container *ngIf="user$ | async as user; else guest">
+      <div class="relative" [class.open]="isDropdownOpen">
+        <button 
+          (click)="toggleDropdown()" 
+          class="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+        >
+          <i class="fas fa-user-circle text-xl text-blue-500"></i>
+          <span class="text-gray-700">{{ user.name }}</span>
+          <i class="fas fa-chevron-down text-sm text-gray-500" 
+             [class.rotate-180]="isDropdownOpen"></i>
+        </button>
+        
+        <!-- Dropdown Menu -->
+        <div *ngIf="isDropdownOpen" 
+             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+          <a routerLink="/user/user-profile" 
+             (click)="closeDropdown()"
+             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+            <i class="fas fa-user mr-2"></i>My Profile
+          </a>
+          <a routerLink="/user/applied-jobs" 
+             (click)="closeDropdown()"
+             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+            <i class="fas fa-briefcase mr-2"></i>Applied Jobs
+          </a>
+          <hr class="my-1">
+          <button (click)="showLogoutConfirmation()" 
+                  class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Guest links -->
+    <ng-template #guest>
+      <div>
+        <a routerLink="/auth/login" class="hover:text-blue-500">Login</a>
+      </div>
+      <div>
+        <a routerLink="/auth/signup" class="hover:text-blue-500">Sign Up</a>
+      </div>
+    </ng-template>
+  </div>
+</header>
+
+<!-- Logout Confirmation Modal -->
+<div *ngIf="showLogoutModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+  <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+    <div class="flex items-center space-x-3 mb-4">
+      <i class="fas fa-exclamation-circle text-2xl text-yellow-500"></i>
+      <h2 class="text-xl font-semibold text-gray-800">Confirm Logout</h2>
+    </div>
+    <p class="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
+    
+    <div class="flex space-x-3">
+      <button (click)="cancelLogout()" 
+              class="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+        Cancel
+      </button>
+      <button (click)="confirmLogout()" 
+              class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+        Logout
+      </button>
+    </div>
+  </div>
+</div>

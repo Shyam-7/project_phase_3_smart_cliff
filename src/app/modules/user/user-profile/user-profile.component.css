@@ -1,0 +1,18 @@
+/* user-profile.component.css */
+@import "tailwindcss";
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.modal {
+  backdrop-filter: blur(4px);
+}
+
+.linkedin-card {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.linkedin-card:hover {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
