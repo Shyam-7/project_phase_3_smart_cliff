@@ -52,9 +52,9 @@ export class JobManagementComponent {
     this.isEditing = true;
   }
 
-  deleteJob(id: number): void {
+  deleteJob(id: string): void {
     if (confirm('Are you sure you want to delete this job?')) {
-      this.jobService.deleteJob(id.toString()).subscribe({
+      this.jobService.deleteJob(id).subscribe({
         next: () => {
           this.jobs = this.jobs.filter(job => job.id !== id);
           this.filteredJobs = this.filteredJobs.filter(job => job.id !== id);
@@ -118,7 +118,7 @@ export class JobManagementComponent {
 
   addNewJob(): void {
     this.selectedJob = {
-      id: 0, // Will be assigned by server
+      id: '', // Will be assigned by server
       title: '',
       company: '',
       rating: 0,

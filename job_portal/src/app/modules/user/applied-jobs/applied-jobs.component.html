@@ -2,8 +2,8 @@
 
 <div class="applied-jobs-container">
   <!-- Page Header -->
-  <div class="page-header">
-    <h1>My Applied Jobs</h1>
+  <div class="page-header">            <div class="info-row" *ngIf="item.application.resumePath">
+              <strong>Resume:</strong> {{ item.application.resumePath }}</div>    <h1>My Applied Jobs</h1>
     <p class="page-subtitle">Track and manage your job applications</p>
   </div>
 
@@ -100,6 +100,36 @@
             <span class="applied-date">
               Applied on {{ item.application.applicationDate | date:'mediumDate' }}
             </span>
+            <span class="application-type" [class.quick-apply]="item.application.quickApply">
+              {{ item.application.quickApply ? 'Quick Apply' : 'Custom Apply' }}
+            </span>
+          </div>
+
+          <!-- Application Information -->
+          <div class="application-info" *ngIf="!item.application.quickApply">
+            <div class="info-row" *ngIf="item.application.fullName">
+              <strong>Name:</strong> {{ item.application.fullName }}
+            </div>
+            <div class="info-row" *ngIf="item.application.email">
+              <strong>Email:</strong> {{ item.application.email }}
+            </div>
+            <div class="info-row" *ngIf="item.application.phone">
+              <strong>Phone:</strong> {{ item.application.phone }}
+            </div>
+            <div class="info-row" *ngIf="item.application.resumePath">
+              <strong>Resume:</strong> {{ item.application.resumePath }}
+            </div>
+            <div class="info-row cover-letter" *ngIf="item.application.coverLetter">
+              <strong>Cover Letter:</strong>
+              <p class="cover-letter-text">{{ item.application.coverLetter }}</p>
+            </div>
+          </div>
+          
+          <!-- Quick Apply Information -->
+          <div class="application-info" *ngIf="item.application.quickApply">
+            <div class="info-row">
+              <em>Applied using your profile information</em>
+            </div>
           </div>
           
           <!-- Actions -->
@@ -108,6 +138,12 @@
               (click)="viewJobDetails(item.application.jobId)" 
               class="action-btn view-btn">
               View Job
+            </button>
+            
+            <button 
+              (click)="viewApplicationDetails(item.application)" 
+              class="action-btn details-btn">
+              View Details
             </button>
             
             <button 

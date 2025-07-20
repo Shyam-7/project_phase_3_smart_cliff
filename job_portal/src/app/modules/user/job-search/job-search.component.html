@@ -13,7 +13,7 @@
               d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
           </svg>
           <input type="text" [(ngModel)]="searchQuery" name="q" placeholder="Job title, Keyword..."
-            class="w-full focus:outline-none text-sm text-gray-700" />
+            (input)="onSearch()" class="w-full focus:outline-none text-sm text-gray-700" />
         </div>
 
         <!-- Divider -->
@@ -27,7 +27,7 @@
               d="M12 2C8.13 2 5 5.13 5 9c0 4.5229 5.1954 11.0927 6.6344 12.8256.1934.2329.5378.2329.7312 0C13.8046 20.0927 19 13.5229 19 9c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
           </svg>
           <input type="text" [(ngModel)]="locationQuery" name="l" placeholder="Your Location"
-            class="w-full focus:outline-none text-sm text-gray-700" />
+            (input)="onSearch()" class="w-full focus:outline-none text-sm text-gray-700" />
         </div>
 
         <!-- Submit Button -->
@@ -53,7 +53,7 @@
           <div class="space-y-2">
             <div *ngFor="let option of experienceOptions" class="flex items-center">
               <input type="checkbox" [id]="'exp-'+option" [value]="option" [(ngModel)]="selectedExperience[option]"
-                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                (change)="onFilterChange()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
               <label [for]="'exp-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
             </div>
           </div>
@@ -65,7 +65,7 @@
           <div class="space-y-2">
             <div *ngFor="let option of locationOptions" class="flex items-center">
               <input type="checkbox" [id]="'loc-'+option" [value]="option" [(ngModel)]="selectedLocations[option]"
-                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                (change)="onFilterChange()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
               <label [for]="'loc-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
             </div>
           </div>
@@ -77,7 +77,7 @@
           <div class="space-y-2">
             <div *ngFor="let option of salaryOptions" class="flex items-center">
               <input type="checkbox" [id]="'sal-'+option" [value]="option" [(ngModel)]="selectedSalaries[option]"
-                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                (change)="onFilterChange()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
               <label [for]="'sal-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
             </div>
           </div>
@@ -89,7 +89,7 @@
           <div class="space-y-2">
             <div *ngFor="let option of companyTypeOptions" class="flex items-center">
               <input type="checkbox" [id]="'comp-'+option" [value]="option" [(ngModel)]="selectedCompanyTypes[option]"
-                (change)="applyFilters()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                (change)="onFilterChange()" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
               <label [for]="'comp-'+option" class="ml-2 text-sm text-gray-700">{{option}}</label>
             </div>
           </div>
@@ -106,7 +106,7 @@
     <section class="w-full lg:w-3/4 order-0 lg:order-none">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold">{{ filteredJobs.length }} Jobs Found</h2>
-        <select class="border px-3 py-1 rounded text-sm" [(ngModel)]="sortOption" (change)="sortJobs()">
+        <select class="border px-3 py-1 rounded text-sm" [(ngModel)]="sortOption" (change)="onSortChange()">
           <option value="relevance">Sort by: Relevance</option>
           <option value="date">Sort by: Date</option>
           <option value="salary">Sort by: Salary</option>
@@ -115,7 +115,11 @@
 
       <div class="flex flex-col gap-4">
         <ng-container *ngIf="filteredJobs.length > 0; else noResults">
-          <app-job-card *ngFor="let job of filteredJobs" [job]="job" class="mb-4"></app-job-card>
+          <app-job-card 
+            *ngFor="let job of filteredJobs" 
+            [job]="job" 
+            class="mb-4">
+          </app-job-card>
         </ng-container>
 
         <ng-template #noResults>

@@ -52,11 +52,27 @@ The app will run on `http://localhost:4200`
 
 ### Admin Account
 - **Email:** `admin@example.com`
-- **Password:** `123456`
+- **Password:** `admin123` (updated from default)
 
 ### Regular User Accounts
-- **Email:** `user@example.com` | **Password:** `123456`
-- **Email:** `justsgk07@gmail.com` | **Password:** `123456`
+- **Email:** `user@example.com` | **Password:** `password`
+- **Email:** `justsgk07@gmail.com` | **Password:** `password`
+
+### Password Management Commands
+```bash
+# View all users and their emails
+node check_users.js
+
+# Change any user's password
+node change_password.js <email> <new_password>
+
+# Examples:
+node change_password.js admin@example.com mynewpassword
+node change_password.js justsgk07@gmail.com mypassword
+
+# Reset admin password to default
+node reset_admin_password.js
+```
 
 ## API Endpoints
 
@@ -65,6 +81,15 @@ The backend provides the following API endpoints:
 ### Authentication
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
+- `PUT /api/auth/change-password` - Change password (requires auth)
+
+### Password Management (Scripts)
+- `node change_password.js <email> <new_password>` - Change any user's password
+- `node check_users.js` - List all users in database
+- `node test_all_passwords.js` - Test and display all working login credentials
+- `node check_admin_password.js` - Test admin password combinations
+- `node create_admin.js` - Create new admin account
+- `node reset_admin_password.js` - Reset admin password to admin123
 
 ### Jobs
 - `GET /api/jobs` - Get all jobs
@@ -126,3 +151,5 @@ You can now:
 3. Test user registration and login
 4. Test job browsing and application features
 5. Test user profile management
+
+

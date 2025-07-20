@@ -12,6 +12,11 @@ const router = express.Router();
 // @access  Private (requires login)
 router.post('/', protect, applyToJob);
 
+// @route   GET /api/applications/user
+// @desc    Get applications for current user
+// @access  Private (requires login)
+router.get('/user', protect, getUserApplications);
+
 // @route   GET /api/applications/user/:userId
 // @desc    Get applications for a specific user
 // @access  Private (requires login)

@@ -30,6 +30,10 @@ export class JobService {
     return this.http.get<Job[]>(this.apiUrl);
   }
 
+  getJobsWithFilters(params: any): Observable<Job[]> {
+    return this.http.get<Job[]>(this.apiUrl, { params });
+  }
+
   getJobById(id: string): Observable<Job> {
     return this.http.get<Job>(`${this.apiUrl}/${id}`, {
       headers: this.getAuthHeaders()

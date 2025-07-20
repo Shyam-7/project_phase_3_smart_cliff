@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { JobService } from '../../../core/services/job.service';
+import { ApplicationService } from '../../../core/services/application.service';
 import { Job } from '../../../core/models/job.model';
 import { JobApplication } from '../../../core/models/job-application.model';
 import { CommonModule } from '@angular/common';
@@ -8,11 +9,12 @@ import { FormsModule } from '@angular/forms';
 import { SharedModule } from "../../../shared/shared.module";
 import { JobApplicationModalComponent } from '../job-application-modal/job-application-modal.component';
 import { AuthService } from '../../../core/auth/auth.service';
+import { TimeAgoPipe } from '../../../pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-job-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedModule, JobApplicationModalComponent],
+  imports: [CommonModule, FormsModule, SharedModule, JobApplicationModalComponent, TimeAgoPipe],
   templateUrl: './job-details.component.html',
   styleUrls: ['./job-details.component.css']
 })
@@ -28,6 +30,7 @@ export class JobDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private jobService: JobService,
+    private applicationService: ApplicationService,
     private authService: AuthService
   ) { }
 
@@ -49,7 +52,7 @@ export class JobDetailsComponent implements OnInit {
         this.job = job;
         this.loading = false;
         // Check if user has already applied to this job
-        this.checkApplicationStatus(parseInt(jobId));
+        this.checkApplicationStatus(jobId);
       },
       error: (err) => {
         console.error('Job details error:', err);
@@ -59,15 +62,26 @@ export class JobDetailsComponent implements OnInit {
     });
   }
 
-  private checkApplicationStatus(jobId: number): void {
+  private checkApplicationStatus(jobId: string): void {
+    // Check from ApplicationService first (for immediate UI feedback)
+    this.hasApplied = this.applicationService.hasApplied(jobId);
+    
+    // Then check from API for accuracy
     const currentUser = this.authService.getCurrentUser();
     if (currentUser?.id) {
-      this.jobService.getUserApplications(currentUser.id).subscribe({
-        next: (applications) => {
-          this.hasApplied = applications.some(app => 
-            Number(app.application.jobId) === jobId && 
-            app.application.status !== 'Withdrawn'
-          );
+      this.applicationService.getUserApplications().subscribe({
+        next: (applications: any[]) => {
+          const hasAppliedToJob = applications.some(app => {
+            const appJobId = app.application?.jobId || app.jobId;
+            const appStatus = app.application?.status || app.status;
+            return appJobId === jobId && appStatus !== 'Withdrawn';
+          });
+          this.hasApplied = hasAppliedToJob;
+          
+          // Update the ApplicationService state
+          if (hasAppliedToJob) {
+            this.applicationService.addToAppliedJobs(jobId);
+          }
         },
         error: (error) => {
           console.error('Error checking application status:', error);
@@ -91,27 +105,44 @@ export class JobDetailsComponent implements OnInit {
     this.showApplicationModal = true;
   }
 
-  handleApplicationSubmit(applicationData: JobApplication): void {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser?.id || !this.job?.id) {
-      console.error('Missing user or job information');
+  // Quick apply function
+  quickApply(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/auth/login']);
       return;
     }
 
-    const application: JobApplication = {
-      ...applicationData,
-      jobId: this.job.id,
-      userId: currentUser.id,
-      applicationDate: new Date().toISOString(),
-      status: 'Applied'
-    };
+    if (!this.job?.id) {
+      console.error('Job ID not found');
+      return;
+    }
 
-    this.jobService.applyToJob(application).subscribe({
+    this.applicationService.applyToJob(this.job.id, { quickApply: true }).subscribe({
+      next: (response) => {
+        console.log('Quick application submitted successfully:', response);
+        this.hasApplied = true;
+        alert('Application submitted successfully!');
+      },
+      error: (error) => {
+        console.error('Error submitting quick application:', error);
+        alert('Failed to submit application. Please try again.');
+      }
+    });
+  }
+
+  handleApplicationSubmit(applicationData: JobApplication): void {
+    if (!this.job?.id) {
+      console.error('Job ID not found');
+      return;
+    }
+
+    this.applicationService.applyToJob(this.job.id, applicationData).subscribe({
       next: (response) => {
         console.log('Application submitted successfully:', response);
-        this.hasApplied = true; // Update the button status
+        this.hasApplied = true;
+        this.applicationService.addToAppliedJobs(this.job!.id);
+        this.applicationService.refreshAppliedJobs(); // Refresh from API
         this.showApplicationModal = false;
-        // Show success message
         alert('Application submitted successfully!');
       },
       error: (error) => {

@@ -1,5 +1,5 @@
 export interface Job {
-  id: number;
+  id: string; // Changed from number to string to support UUIDs
   title: string;
   company: string;
   rating: number;

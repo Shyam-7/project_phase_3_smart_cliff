@@ -3,17 +3,16 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Job } from '../../../../core/models/job.model';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { TimeAgoPipe } from '../../../../pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-job-card',
-  imports: [CommonModule],
+  imports: [CommonModule, TimeAgoPipe],
   templateUrl: './job-card.component.html',
   styleUrls: ['./job-card.component.css']
 })
 export class JobCardComponent {
   @Input() job!: Job;
-  @Input() isApplied: boolean = false; // New input to show if already applied
-  @Output() apply = new EventEmitter<number>();
 
   constructor(private router: Router) { }
 
@@ -25,15 +24,5 @@ export class JobCardComponent {
     event.stopPropagation();
     // Implement save job functionality
     console.log('Job saved:', this.job.id);
-  }
-
-  applyToJob(event: Event): void {
-    event.stopPropagation();
-    this.apply.emit(this.job.id);
-  }
-
-  onApply(event: Event): void {
-    event.stopPropagation();
-    this.apply.emit(this.job.id);
   }
 }

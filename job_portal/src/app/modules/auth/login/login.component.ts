@@ -43,7 +43,9 @@ export class LoginComponent {
         this.router.navigate([redirectPath]);
       },
       error: err => {
-        this.error = err.message || 'Login failed';
+        console.error('Login error:', err);
+        // Extract error message from HTTP error response
+        this.error = err.error?.message || err.message || 'Invalid username or password';
       }
     });
   }

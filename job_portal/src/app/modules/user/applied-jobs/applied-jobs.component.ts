@@ -202,6 +202,27 @@ export class AppliedJobsComponent implements OnInit {
     return (this.editForm.coverLetter || '').length;
   }
 
+  viewApplicationDetails(application: JobApplication): void {
+    // Create a detailed view modal or navigate to a details page
+    const details = {
+      'Application Type': application.quickApply ? 'Quick Apply' : 'Custom Apply',
+      'Full Name': application.fullName || 'Not provided',
+      'Email': application.email || 'Not provided',
+      'Phone': application.phone || 'Not provided',
+      'Resume': application.resumePath || 'Not provided',
+      'Cover Letter': application.coverLetter || 'Not provided',
+      'Applied Date': new Date(application.applicationDate).toLocaleDateString(),
+      'Status': application.status
+    };
+
+    let message = 'Application Details:\n\n';
+    Object.entries(details).forEach(([key, value]) => {
+      message += `${key}: ${value}\n`;
+    });
+
+    alert(message); // For now, using alert. In production, you'd use a proper modal
+  }
+
   private handleError(message: string): void {
     this.error = message;
     this.isLoading = false;

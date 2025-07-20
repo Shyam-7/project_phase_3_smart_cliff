@@ -1,6 +1,6 @@
 export interface JobApplication {
   id?: number; // Optional for new applications
-  jobId: number;
+  jobId: string; // Changed from number to string to support UUIDs
   userId: number;
   applicationDate: string;
   status: 'Applied' | 'Under Review' | 'Interview' | 'Rejected' | 'Accepted' | 'Withdrawn';

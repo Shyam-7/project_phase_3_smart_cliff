@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { JobService } from '../../../core/services/job.service';
+import { ApplicationService } from '../../../core/services/application.service';
 import { Job } from '../../../core/models/job.model';
 import { JobCardComponent } from "../../../shared/components/user/job-card/job-card.component";
 import { CommonModule } from '@angular/common';
@@ -41,7 +42,8 @@ export class JobSearchComponent implements OnInit {
   constructor(
     private jobService: JobService,
     private route: ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
+    private applicationService: ApplicationService
   ) { }
 
   ngOnInit(): void {
@@ -66,12 +68,55 @@ export class JobSearchComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.jobService.getJobs().subscribe({
+    // Build filter parameters
+    const params: any = {};
+    
+    // Add search query
+    if (this.searchQuery.trim()) {
+      params.search = this.searchQuery.trim();
+    }
+    
+    // Add location filter
+    if (this.locationQuery.trim()) {
+      params.location = this.locationQuery.trim();
+    }
+    
+    // Add checkbox filters
+    const activeExpFilters = Object.keys(this.selectedExperience).filter(k => this.selectedExperience[k]);
+    if (activeExpFilters.length > 0) {
+      params.experience = activeExpFilters[0]; // For simplicity, use first selected
+    }
+    
+    const activeLocationFilters = Object.keys(this.selectedLocations).filter(k => this.selectedLocations[k]);
+    if (activeLocationFilters.length > 0) {
+      params.location = activeLocationFilters[0];
+    }
+    
+    const activeSalaryFilters = Object.keys(this.selectedSalaries).filter(k => this.selectedSalaries[k]);
+    if (activeSalaryFilters.length > 0) {
+      // Parse salary range (e.g., "3-6 LPA" -> min: 3, max: 6)
+      const salaryRange = activeSalaryFilters[0];
+      if (salaryRange.includes('-')) {
+        const [min, max] = salaryRange.split('-').map(s => parseInt(s.trim()));
+        params.salary_min = min;
+        params.salary_max = max;
+      }
+    }
+    
+    const activeCompanyTypeFilters = Object.keys(this.selectedCompanyTypes).filter(k => this.selectedCompanyTypes[k]);
+    if (activeCompanyTypeFilters.length > 0) {
+      params.company_type = activeCompanyTypeFilters[0];
+    }
+    
+    // Add sorting
+    params.sort_by = this.getSortField();
+    params.sort_order = this.getSortOrder();
+
+    this.jobService.getJobsWithFilters(params).subscribe({
       next: (jobs) => {
         this.jobs = jobs;
         this.originalOrderJobs = [...jobs];
         this.filteredJobs = [...jobs];
-        this.applyFilters();
         this.isLoading = false;
       },
       error: (err) => {
@@ -82,6 +127,20 @@ export class JobSearchComponent implements OnInit {
         this.filteredJobs = [];
       }
     });
+  }
+
+  private getSortField(): string {
+    switch (this.sortOption) {
+      case 'date': return 'created_at';
+      case 'salary': return 'salary_max';
+      case 'company': return 'company_name';
+      case 'title': return 'title';
+      default: return 'created_at';
+    }
+  }
+
+  private getSortOrder(): string {
+    return this.sortOption === 'salary' ? 'DESC' : 'DESC'; // Most recent first by default
   }
 
   applyFilters(): void {
@@ -233,28 +292,19 @@ export class JobSearchComponent implements OnInit {
   }
 
   onSearch(): void {
-    this.applyFilters();
+    this.loadJobs(); // Reload jobs with search query
+  }
+
+  onFilterChange(): void {
+    this.loadJobs(); // Reload jobs with new filters
+  }
+
+  onSortChange(): void {
+    this.loadJobs(); // Reload jobs with new sorting
   }
 
   sortJobs(): void {
-    switch (this.sortOption) {
-      case 'date':
-        this.filteredJobs.sort((a, b) => {
-          const dateA = new Date(a.posted).getTime();
-          const dateB = new Date(b.posted).getTime();
-          return dateB - dateA; // Newest first
-        });
-        break;
-      case 'salary':
-        this.filteredJobs.sort((a, b) => {
-          const salaryA = a.salary ?? -Infinity;
-          const salaryB = b.salary ?? -Infinity;
-          return salaryB - salaryA; // Highest salary first
-        });
-        break;
-      default: // 'relevance'
-        // Maintain original order but filtered
-        break;
-    }
+    // Sorting is now handled by the backend
+    // This method kept for compatibility but does nothing
   }
 }

@@ -43,8 +43,24 @@ CREATE TABLE `jobs` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `expires_at` timestamp NULL DEFAULT NULL,
+  `salary_min` decimal(10,2) DEFAULT NULL,
+  `salary_max` decimal(10,2) DEFAULT NULL,
+  `salary_currency` varchar(3) DEFAULT 'INR',
+  `company_rating` decimal(2,1) DEFAULT NULL,
+  `company_reviews_count` int DEFAULT 0,
+  `remote_allowed` boolean DEFAULT FALSE,
+  `skills_required` text,
+  `benefits` text,
+  `company_size` varchar(50) DEFAULT NULL,
+  `company_type` varchar(50) DEFAULT 'Corporate',
   PRIMARY KEY (`id`),
   KEY `posted_by_fk_idx` (`posted_by`),
+  KEY `idx_category` (`category`),
+  KEY `idx_location` (`location`),
+  KEY `idx_experience_level` (`experience_level`),
+  KEY `idx_employment_type` (`employment_type`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_salary_range` (`salary_min`, `salary_max`),
   CONSTRAINT `posted_by_fk` FOREIGN KEY (`posted_by`) REFERENCES `users` (`id`)
 );
 
@@ -55,6 +71,10 @@ CREATE TABLE `applications` (
   `job_id` varchar(36) NOT NULL,
   `resume_url` varchar(255) DEFAULT NULL,
   `cover_letter` text,
+  `full_name` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `quick_apply` boolean DEFAULT FALSE,
   `status` varchar(100) DEFAULT 'applied',
   `admin_notes` text,
   `applied_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -100,12 +120,12 @@ INSERT INTO job_seeker_profiles (id, user_id, skills, experience, education, bio
 ('750e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002', 'Python, Java, Django, AI/ML', '1+ years of experience in AI/ML', 'B.Tech in CSE(AI)', 'Hey! This is Shyam, passionate about AI and software development', 'Shyam', 'Kumar', '1234567890');
 
 -- Insert sample jobs
-INSERT INTO jobs (id, title, company_name, location, employment_type, experience_level, category, description, requirements, posted_by, views, expires_at) VALUES 
-('650e8400-e29b-41d4-a716-446655440000', 'Full Stack Developer', 'TechCorp Solutions', 'San Francisco, CA', 'Full-time', 'Mid-level', 'Software Development', 'We are looking for a talented Full Stack Developer to join our growing team. You will be responsible for developing and maintaining web applications using modern technologies.', 'Bachelor degree in Computer Science or related field. 2+ years experience with React, Node.js, and databases. Strong problem-solving skills.', '550e8400-e29b-41d4-a716-446655440003', 45, DATE_ADD(NOW(), INTERVAL 30 DAY)),
-('650e8400-e29b-41d4-a716-446655440001', 'Frontend Developer', 'Digital Innovations Inc', 'New York, NY', 'Full-time', 'Junior', 'Software Development', 'Join our frontend team to create amazing user experiences. Work with React, TypeScript, and modern CSS frameworks.', '1+ years experience with React or similar frameworks. Knowledge of HTML, CSS, JavaScript. Understanding of responsive design principles.', '550e8400-e29b-41d4-a716-446655440003', 32, DATE_ADD(NOW(), INTERVAL 45 DAY)),
-('650e8400-e29b-41d4-a716-446655440002', 'Python Developer', 'AI Solutions Ltd', 'Remote', 'Contract', 'Mid-level', 'Software Development', 'Looking for a Python developer to work on AI/ML projects. Experience with Django, FastAPI, and machine learning libraries preferred.', 'Strong Python programming skills. Experience with Django or FastAPI. Knowledge of machine learning libraries like scikit-learn, pandas, numpy.', '550e8400-e29b-41d4-a716-446655440003', 67, DATE_ADD(NOW(), INTERVAL 60 DAY)),
-('650e8400-e29b-41d4-a716-446655440003', 'UI/UX Designer', 'Creative Studio Pro', 'Los Angeles, CA', 'Part-time', 'Senior', 'Design', 'We need a creative UI/UX designer to design intuitive and beautiful user interfaces for our web and mobile applications.', '3+ years of UI/UX design experience. Proficiency in Figma, Adobe XD, or similar tools. Strong portfolio showcasing web and mobile designs.', '550e8400-e29b-41d4-a716-446655440003', 23, DATE_ADD(NOW(), INTERVAL 30 DAY)),
-('650e8400-e29b-41d4-a716-446655440004', 'DevOps Engineer', 'CloudTech Services', 'Austin, TX', 'Full-time', 'Senior', 'Infrastructure', 'Seeking an experienced DevOps Engineer to manage our cloud infrastructure and CI/CD pipelines.', 'Experience with AWS/Azure/GCP. Knowledge of Docker, Kubernetes, Jenkins. Scripting skills in Python or Bash. Experience with infrastructure as code.', '550e8400-e29b-41d4-a716-446655440003', 41, DATE_ADD(NOW(), INTERVAL 30 DAY));
+INSERT INTO jobs (id, title, company_name, location, employment_type, experience_level, category, description, requirements, posted_by, views, expires_at, salary_min, salary_max, company_rating, company_reviews_count, remote_allowed, skills_required, benefits, company_size, company_type) VALUES 
+('650e8400-e29b-41d4-a716-446655440000', 'Full Stack Developer', 'TechCorp Solutions', 'San Francisco, CA', 'Full-time', '2-5 years', 'Software Development', 'We are looking for a talented Full Stack Developer to join our growing team. You will be responsible for developing and maintaining web applications using modern technologies.', 'Bachelor degree in Computer Science or related field. 2+ years experience with React, Node.js, and databases. Strong problem-solving skills.', '550e8400-e29b-41d4-a716-446655440003', 45, DATE_ADD(NOW(), INTERVAL 30 DAY), 600000, 1200000, 4.2, 803, TRUE, 'JavaScript, React, Node.js, MongoDB, TypeScript, Git', 'Health Insurance, Flexible Working Hours, Remote Work, Performance Bonus', '201-500', 'Corporate'),
+('650e8400-e29b-41d4-a716-446655440001', 'Frontend Developer', 'Digital Innovations Inc', 'New York, NY', 'Full-time', '1-2 years', 'Software Development', 'Join our frontend team to create amazing user experiences. Work with React, TypeScript, and modern CSS frameworks.', '1+ years experience with React or similar frameworks. Knowledge of HTML, CSS, JavaScript. Understanding of responsive design principles.', '550e8400-e29b-41d4-a716-446655440003', 32, DATE_ADD(NOW(), INTERVAL 45 DAY), 400000, 800000, 3.8, 456, FALSE, 'React, TypeScript, HTML, CSS, JavaScript, Responsive Design', 'Health Insurance, Learning Budget, Team Outings', '51-200', 'Startup'),
+('650e8400-e29b-41d4-a716-446655440002', 'Python Developer', 'AI Solutions Ltd', 'Remote', 'Contract', '2-5 years', 'Software Development', 'Looking for a Python developer to work on AI/ML projects. Experience with Django, FastAPI, and machine learning libraries preferred.', 'Strong Python programming skills. Experience with Django or FastAPI. Knowledge of machine learning libraries like scikit-learn, pandas, numpy.', '550e8400-e29b-41d4-a716-446655440003', 67, DATE_ADD(NOW(), INTERVAL 60 DAY), 800000, 1500000, 4.5, 234, TRUE, 'Python, Django, FastAPI, Machine Learning, pandas, numpy, scikit-learn', 'Flexible Hours, Remote Work, Project Bonus', '11-50', 'Startup'),
+('650e8400-e29b-41d4-a716-446655440003', 'UI/UX Designer', 'Creative Studio Pro', 'Los Angeles, CA', 'Part-time', '5-10 years', 'Design', 'We need a creative UI/UX designer to design intuitive and beautiful user interfaces for our web and mobile applications.', '3+ years of UI/UX design experience. Proficiency in Figma, Adobe XD, or similar tools. Strong portfolio showcasing web and mobile designs.', '550e8400-e29b-41d4-a716-446655440003', 23, DATE_ADD(NOW(), INTERVAL 30 DAY), 500000, 900000, 4.0, 189, TRUE, 'Figma, Adobe XD, UI/UX Design, Prototyping, User Research', 'Flexible Hours, Creative Freedom, Design Tools Budget', '11-50', 'Creative Agency'),
+('650e8400-e29b-41d4-a716-446655440004', 'DevOps Engineer', 'CloudTech Services', 'Austin, TX', 'Full-time', '5-10 years', 'Infrastructure', 'Seeking an experienced DevOps Engineer to manage our cloud infrastructure and CI/CD pipelines.', 'Experience with AWS/Azure/GCP. Knowledge of Docker, Kubernetes, Jenkins. Scripting skills in Python or Bash. Experience with infrastructure as code.', '550e8400-e29b-41d4-a716-446655440003', 41, DATE_ADD(NOW(), INTERVAL 30 DAY), 1000000, 1800000, 4.3, 678, FALSE, 'AWS, Docker, Kubernetes, Jenkins, Python, Bash, Terraform', 'Health Insurance, Stock Options, Learning Budget, Certification Support', '201-500', 'Corporate');
 
 -- Insert sample applications
 INSERT INTO applications (id, user_id, job_id, status, applied_at, cover_letter) VALUES 

@@ -6,7 +6,7 @@ exports.applyToJob = async (req, res) => {
   const userId = req.user.id;
   const { jobId, resumePath, coverLetter, fullName, email, phone, quickApply } = req.body;
 
-  console.log('Apply request received:', { userId, jobId, quickApply });
+  console.log('Apply request received:', { userId, jobId, quickApply, fullName, email, phone });
 
   if (!jobId) {
     return res.status(400).json({ message: 'Job ID is required.' });
@@ -24,8 +24,9 @@ exports.applyToJob = async (req, res) => {
     }
 
     const [result] = await pool.query(
-      'INSERT INTO applications (user_id, job_id, resume_url, cover_letter, status) VALUES (?, ?, ?, ?, ?)',
-      [userId, jobId, resumePath || null, coverLetter || null, 'applied']
+      `INSERT INTO applications (user_id, job_id, resume_url, cover_letter, full_name, email, phone, quick_apply, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, jobId, resumePath || null, coverLetter || null, fullName || null, email || null, phone || null, quickApply || false, 'applied']
     );
 
     const applicationResponse = {
@@ -36,6 +37,9 @@ exports.applyToJob = async (req, res) => {
       status: 'applied',
       coverLetter: coverLetter || null,
       resumePath: resumePath || null,
+      fullName: fullName || null,
+      email: email || null,
+      phone: phone || null,
       quickApply: quickApply || false
     };
 
@@ -52,7 +56,8 @@ exports.applyToJob = async (req, res) => {
 // Get user's applications
 exports.getUserApplications = async (req, res) => {
   try {
-    const userId = req.user.id;
+    // Use userId from params if provided, otherwise use current user's ID from token
+    const userId = req.params.userId || req.user.id;
     
     const [rows] = await pool.query(`
       SELECT 
@@ -61,6 +66,10 @@ exports.getUserApplications = async (req, res) => {
         a.job_id,
         a.resume_url,
         a.cover_letter,
+        a.full_name,
+        a.email,
+        a.phone,
+        a.quick_apply,
         a.status,
         a.applied_at,
         j.id as job_id,
@@ -90,7 +99,10 @@ exports.getUserApplications = async (req, res) => {
         status: row.status,
         coverLetter: row.cover_letter,
         resumeUrl: row.resume_url,
-        quickApply: !row.cover_letter // Assume quick apply if no cover letter
+        fullName: row.full_name,
+        email: row.email,
+        phone: row.phone,
+        quickApply: row.quick_apply || false
       },
       job: {
         id: row.job_id,
