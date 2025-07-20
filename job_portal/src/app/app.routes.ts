@@ -47,7 +47,7 @@ export const routes: Routes = [
     component: UserLayoutComponent,
     //temp disabled for testing
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'user' },
+    data: { role: 'job_seeker' }, // Changed from 'user' to 'job_seeker'
     children: [
       { path: 'user-dashboard', component: UserDashboardComponent },
       { path: 'applied-jobs', component: AppliedJobsComponent },

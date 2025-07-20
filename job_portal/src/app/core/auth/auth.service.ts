@@ -2,7 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { apiConfig } from '../../api.config';
 
@@ -88,7 +88,8 @@ export class AuthService {
           this.setItem('currentUser', JSON.stringify(response.user));
           this.currentUserSubject.next(response.user);
         }
-      })
+      }),
+      map(response => response.user) // Return just the user object
     );
   }
 

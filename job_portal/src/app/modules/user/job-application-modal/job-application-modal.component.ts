@@ -66,12 +66,6 @@ export class JobApplicationModalComponent {
           quickApply: true
         };
       } else {
-        let resumePath = '';
-        if (this.customApplicationData.resume) {
-          const uploadResult = await this.jobService.uploadResume(this.customApplicationData.resume);
-          resumePath = uploadResult && uploadResult.path ? uploadResult.path : '';
-        }
-
         application = {
           jobId: this.job.id,
           userId: user.id,
@@ -81,7 +75,7 @@ export class JobApplicationModalComponent {
           email: this.customApplicationData.email,
           phone: this.customApplicationData.phone,
           coverLetter: this.customApplicationData.coverLetter,
-          resumePath,
+          resumePath: 'resume-placeholder.pdf', // Placeholder for now
           quickApply: false
         };
       }

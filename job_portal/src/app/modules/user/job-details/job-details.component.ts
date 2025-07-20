@@ -33,26 +33,28 @@ export class JobDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     const jobId = this.route.snapshot.paramMap.get('id');
+    console.log('Route job ID:', jobId);
     if (jobId) {
-      this.loadJobDetails(+jobId);
+      this.loadJobDetails(jobId);
     } else {
       this.error = 'No job ID provided';
       this.loading = false;
     }
   }
 
-  private loadJobDetails(jobId: number): void {
-    this.jobService.getJobById(jobId.toString()).subscribe({
+  private loadJobDetails(jobId: string): void {
+    console.log('Loading job details for ID:', jobId);
+    this.jobService.getJobById(jobId).subscribe({
       next: (job) => {
         this.job = job;
         this.loading = false;
         // Check if user has already applied to this job
-        this.checkApplicationStatus(jobId);
+        this.checkApplicationStatus(parseInt(jobId));
       },
       error: (err) => {
-        this.error = 'Failed to load job details';
+        console.error('Job details error:', err);
+        this.error = err.error?.message || 'Failed to load job details';
         this.loading = false;
-        console.error(err);
       }
     });
   }

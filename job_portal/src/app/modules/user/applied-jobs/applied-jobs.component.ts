@@ -97,7 +97,7 @@ export class AppliedJobsComponent implements OnInit {
     this.sortApplications({ target: { value: this.currentSort } } as any);
   }
 
-  viewJobDetails(jobId: number): void {
+  viewJobDetails(jobId: number | string): void {
     this.router.navigate(['/user/job-details', jobId]);
   }
 

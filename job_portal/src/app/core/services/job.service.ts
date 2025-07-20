@@ -31,7 +31,9 @@ export class JobService {
   }
 
   getJobById(id: string): Observable<Job> {
-    return this.http.get<Job>(`${this.apiUrl}/${id}`);
+    return this.http.get<Job>(`${this.apiUrl}/${id}`, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   // Apply for job methods (both names for compatibility)
