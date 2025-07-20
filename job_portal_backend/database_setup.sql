@@ -85,6 +85,8 @@ CREATE TABLE `job_seeker_profiles` (
   CONSTRAINT `profile_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
+
+
 -- Insert sample users (password is bcrypt hash of "123456")
 INSERT INTO users (id, name, email, password_hash, role, status, last_active_at) VALUES 
 ('550e8400-e29b-41d4-a716-446655440000', 'Admin User', 'admin@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', NOW()),

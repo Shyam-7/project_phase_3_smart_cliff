@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { Job } from '../../../core/models/job.model';
 import { JobApplication } from '../../../core/models/job-application.model';
 import { JobService } from '../../../core/services/job.service';
@@ -85,7 +86,7 @@ export class JobApplicationModalComponent {
         };
       }
 
-      const result = await this.jobService.applyToJob(application).toPromise();
+      const result = await firstValueFrom(this.jobService.applyToJob(application));
       this.applicationSubmitted.emit(result);
       this.closeModal.emit();
     } catch (error) {
