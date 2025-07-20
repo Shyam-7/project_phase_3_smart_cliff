@@ -1,0 +1,167 @@
+const pool = require('../../db');
+
+// Get user profile by user ID
+exports.getUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // From JWT middleware
+    
+    // Get user basic info
+    const [userRows] = await pool.query(
+      'SELECT id, name, email, role, status, created_at FROM users WHERE id = ?', 
+      [userId]
+    );
+    
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    
+    // Get user profile info
+    const [profileRows] = await pool.query(
+      'SELECT * FROM job_seeker_profiles WHERE user_id = ?', 
+      [userId]
+    );
+    
+    const user = userRows[0];
+    const profile = profileRows[0] || {};
+    
+    // Combine user and profile data to match Angular app expectations
+    const userProfile = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      headline: profile.bio || '',
+      phone: profile.phone_number || '',
+      location: '', // You might want to add location to your schema
+      about: profile.bio || '',
+      experience: profile.experience || '',
+      education: profile.education || '',
+      skills: profile.skills || '',
+      resume: profile.resume_url ? { 
+        name: 'resume.pdf', 
+        url: profile.resume_url 
+      } : null,
+      jobPreferences: {
+        title: '',
+        salary: '',
+        workType: '',
+        availability: 'Immediately'
+      }
+    };
+    
+    res.json(userProfile);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Error fetching user profile.', error });
+  }
+};
+
+// Update user profile
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      name,
+      headline,
+      phone,
+      location,
+      about,
+      experience,
+      education,
+      skills,
+      resume,
+      jobPreferences
+    } = req.body;
+    
+    // Update users table
+    await pool.query(
+      'UPDATE users SET name = ? WHERE id = ?',
+      [name, userId]
+    );
+    
+    // Check if profile exists
+    const [existingProfile] = await pool.query(
+      'SELECT id FROM job_seeker_profiles WHERE user_id = ?',
+      [userId]
+    );
+    
+    if (existingProfile.length > 0) {
+      // Update existing profile
+      await pool.query(
+        `UPDATE job_seeker_profiles SET 
+         bio = ?, 
+         phone_number = ?, 
+         experience = ?, 
+         education = ?, 
+         skills = ?,
+         resume_url = ?,
+         updated_at = NOW()
+         WHERE user_id = ?`,
+        [about, phone, experience, education, skills, resume?.url || null, userId]
+      );
+    } else {
+      // Create new profile
+      await pool.query(
+        `INSERT INTO job_seeker_profiles 
+         (user_id, bio, phone_number, experience, education, skills, resume_url) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, about, phone, experience, education, skills, resume?.url || null]
+      );
+    }
+    
+    res.json({ message: 'Profile updated successfully!' });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Error updating user profile.', error });
+  }
+};
+
+// Get all users (Admin only)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT u.id, u.name, u.email, u.role, u.status, u.created_at,
+             p.phone_number, p.bio, p.skills
+      FROM users u
+      LEFT JOIN job_seeker_profiles p ON u.id = p.user_id
+      ORDER BY u.created_at DESC
+    `);
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Error fetching users.', error });
+  }
+};
+
+// Get user by ID (Admin only)
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const [userRows] = await pool.query(
+      'SELECT id, name, email, role, status, created_at FROM users WHERE id = ?',
+      [id]
+    );
+    
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    
+    const [profileRows] = await pool.query(
+      'SELECT * FROM job_seeker_profiles WHERE user_id = ?',
+      [id]
+    );
+    
+    const user = userRows[0];
+    const profile = profileRows[0] || {};
+    
+    res.json({
+      ...user,
+      profile: profile
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Error fetching user.', error });
+  }
+};

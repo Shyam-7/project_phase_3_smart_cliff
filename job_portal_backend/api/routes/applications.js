@@ -1,5 +1,9 @@
 const express = require('express');
-const { applyToJob } = require('../controllers/applicationController');
+const { 
+  applyToJob, 
+  getUserApplications, 
+  withdrawApplication 
+} = require('../controllers/applicationController');
 const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -7,5 +11,15 @@ const router = express.Router();
 // @desc    Apply for a job
 // @access  Private (requires login)
 router.post('/', protect, applyToJob);
+
+// @route   GET /api/applications/user/:userId
+// @desc    Get applications for a specific user
+// @access  Private (requires login)
+router.get('/user/:userId', protect, getUserApplications);
+
+// @route   DELETE /api/applications/:id
+// @desc    Withdraw an application
+// @access  Private (requires login)
+router.delete('/:id', protect, withdrawApplication);
 
 module.exports = router;

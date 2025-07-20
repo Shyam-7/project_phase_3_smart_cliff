@@ -67,7 +67,7 @@ export class JobApplicationModalComponent {
       } else {
         let resumePath = '';
         if (this.customApplicationData.resume) {
-          const uploadResult = await this.jobService.uploadResume(this.customApplicationData.resume).toPromise();
+          const uploadResult = await this.jobService.uploadResume(this.customApplicationData.resume);
           resumePath = uploadResult && uploadResult.path ? uploadResult.path : '';
         }
 

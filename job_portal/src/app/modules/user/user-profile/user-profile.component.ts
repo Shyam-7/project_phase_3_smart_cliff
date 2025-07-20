@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { AuthService, User } from '../../../core/auth/auth.service';
-import { HttpClient } from '@angular/common/http';
+import { UserService } from '../../../core/services/user.service';
 import { Router } from '@angular/router';
 import { UserModule } from "../user.module";
 import { HeaderComponent } from '../../../shared/components/user/header/header.component';
@@ -27,7 +27,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private http: HttpClient,
+    private userService: UserService,
     private router: Router
   ) { }
 
@@ -69,13 +69,13 @@ export class UserProfileComponent implements OnInit {
 
   loadProfileData(): void {
     this.isLoading = true;
-    this.http.get<any[]>(`http://localhost:3000/users?id=${this.currentUser.id}`).subscribe({
-      next: (res) => {
-        this.profileData = res[0] || {};
+    this.userService.getUserProfile().subscribe({
+      next: (res: any) => {
+        this.profileData = res || {};
         this.initForm(this.profileData);
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading profile data:', err);
         this.isLoading = false;
       }
@@ -203,7 +203,7 @@ export class UserProfileComponent implements OnInit {
     // Close the modal immediately while continuing the save operation
 
 
-    this.http.patch(`http://localhost:3000/users/${this.currentUser.id}`, updatedData)
+    this.userService.updateUserProfile(updatedData)
       .subscribe({
         next: () => {
           this.profileData = { ...this.profileData, ...updatedData };
@@ -211,7 +211,7 @@ export class UserProfileComponent implements OnInit {
           this.saveSuccess = true;
           setTimeout(() => this.saveSuccess = false, 3000);
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error saving profile:', err);
           this.isLoading = false;
           alert('Failed to save profile. Please try again.');
@@ -233,7 +233,7 @@ export class UserProfileComponent implements OnInit {
       updatedData.skills = this.skillsArray.join(', ');
     }
 
-    this.http.patch(`http://localhost:3000/users/${this.currentUser.id}`, updatedData)
+    this.userService.updateUserProfile(updatedData)
       .subscribe({
         next: () => {
           this.profileData = { ...this.profileData, ...updatedData };
@@ -244,7 +244,7 @@ export class UserProfileComponent implements OnInit {
             this.closeEdit(); // Move closeEdit inside setTimeout
           }, 1000); // Reduce timeout to 1 second
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error saving profile:', err);
           this.isLoading = false;
           alert('Failed to save profile. Please try again.');

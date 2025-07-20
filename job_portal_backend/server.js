@@ -5,17 +5,20 @@ require('dotenv').config();
 // --- Import Routes ---
 const authRoutes = require('./api/routes/auth');
 const jobRoutes = require('./api/routes/jobs');
+const applicationRoutes = require('./api/routes/applications');
+const userRoutes = require('./api/routes/users'); // <-- ADD THIS LINE
 
 const app = express();
 
 // --- Middleware ---
-app.use(cors());          // Allows cross-origin requests from your Angular app
-app.use(express.json());  // Parses incoming JSON requests so you can use req.body
+app.use(cors());
+app.use(express.json());
 
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
-// You will add more routes here as you build them
+app.use('/api/applications', applicationRoutes);
+app.use('/api/users', userRoutes); // <-- ADD THIS LINE
 
 const PORT = process.env.PORT || 3001;
 

@@ -54,7 +54,7 @@ export class JobManagementComponent {
 
   deleteJob(id: number): void {
     if (confirm('Are you sure you want to delete this job?')) {
-      this.jobService.deleteJob(id).subscribe({
+      this.jobService.deleteJob(id.toString()).subscribe({
         next: () => {
           this.jobs = this.jobs.filter(job => job.id !== id);
           this.filteredJobs = this.filteredJobs.filter(job => job.id !== id);

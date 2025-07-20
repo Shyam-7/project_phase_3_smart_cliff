@@ -103,7 +103,7 @@ export class AppliedJobsComponent implements OnInit {
 
   withdrawApplication(applicationId: number): void {
     if (confirm('Are you sure you want to withdraw this application?')) {
-      this.jobService.withdrawApplication(applicationId).subscribe({
+      this.jobService.withdrawApplication(applicationId.toString()).subscribe({
         next: () => {
           this.loadApplications(); // Reload the applications
           alert('Application withdrawn successfully');

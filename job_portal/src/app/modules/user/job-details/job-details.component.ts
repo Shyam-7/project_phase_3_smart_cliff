@@ -42,7 +42,7 @@ export class JobDetailsComponent implements OnInit {
   }
 
   private loadJobDetails(jobId: number): void {
-    this.jobService.getJobById(jobId).subscribe({
+    this.jobService.getJobById(jobId.toString()).subscribe({
       next: (job) => {
         this.job = job;
         this.loading = false;
