@@ -142,8 +142,9 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   transition: transform 0.2s, box-shadow 0.2s;
+  min-height: 120px;
 }
 
 .application-card:hover {
@@ -193,10 +194,100 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 1rem;
+  min-width: 300px;
 }
 
 .status-section {
   text-align: right;
+  width: 100%;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-row label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.status-select {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 0.875rem;
+  min-width: 150px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  font-weight: 600;
+  color: white;
+}
+
+/* Status-specific select colors */
+.status-select-applied {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-color: #2563eb;
+}
+
+.status-select-under-review {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #f59e0b;
+}
+
+.status-select-interview {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-color: #8b5cf6;
+}
+
+.status-select-accepted {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #10b981;
+}
+
+.status-select-rejected {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #ef4444;
+}
+
+/* Option colors */
+.status-option-applied {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.status-option-review {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+.status-option-interview {
+  background-color: #e0e7ff !important;
+  color: #5b21b6 !important;
+}
+
+.status-option-accepted {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+}
+
+.status-option-rejected {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.status-select:hover {
+  border-color: #9ca3af;
 }
 
 .status-badge {
@@ -209,12 +300,15 @@
   letter-spacing: 0.05em;
 }
 
-.status-applied { background-color: #dbeafe; color: #1e40af; }
-.status-review { background-color: #fef3c7; color: #92400e; }
-.status-interview { background-color: #e0e7ff; color: #5b21b6; }
-.status-accepted { background-color: #d1fae5; color: #065f46; }
-.status-rejected { background-color: #fee2e2; color: #dc2626; }
-.status-withdrawn { background-color: #f3f4f6; color: #6b7280; }
+/* Status styles with vibrant colors for select dropdowns */
+
+.status-text {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #374151;
+}
 
 .applied-date {
   display: block;
@@ -226,6 +320,8 @@
 .actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
 .action-btn {
@@ -236,6 +332,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  min-width: 80px;
 }
 
 .view-btn {
@@ -245,6 +343,15 @@
 
 .view-btn:hover {
   background-color: #2563eb;
+}
+
+.details-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.details-btn:hover {
+  background-color: #059669;
 }
 
 .edit-btn {
@@ -585,4 +692,104 @@
 
 .close-modal-btn:hover {
   background-color: #4b5563;
+}
+
+/* Job Skills and Benefits Styling */
+.job-skill {
+  display: inline-block;
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Edit Confirmation Modal */
+.edit-confirm-modal {
+  max-width: 500px;
+}
+
+.warning-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+}
+
+.warning-icon {
+  flex-shrink: 0;
+}
+
+.warning-icon i {
+  color: #f59e0b;
+  font-size: 1.5rem;
+}
+
+.warning-text p {
+  margin: 0 0 0.5rem 0;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.warning-text p:last-child {
+  margin-bottom: 0;
+}
+
+.confirm-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+
+.confirm-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .application-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .application-details {
+    align-items: stretch;
+    min-width: auto;
+  }
+  
+  .status-section {
+    text-align: left;
+  }
+  
+  .status-row {
+    justify-content: flex-start;
+  }
+  
+  .actions {
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .action-btn {
+    flex: 1;
+    text-align: center;
+    min-width: auto;
+  }
 }

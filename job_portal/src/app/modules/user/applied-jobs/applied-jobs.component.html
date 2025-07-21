@@ -70,7 +70,6 @@
           <option value="Interview">Interview</option>
           <option value="Rejected">Rejected</option>
           <option value="Accepted">Accepted</option>
-          <option value="Withdrawn">Withdrawn</option>
         </select>
       </div>
     </div>
@@ -87,16 +86,28 @@
             <h3 class="job-title">{{ item.job.title }}</h3>
             <p class="company-name">{{ item.job.company }}</p>
             <p class="job-location">{{ item.job.location }}</p>
-            <p class="job-type">{{ item.job.experience }} • ₹{{ item.job.salary | number }}</p>
+            <p class="job-type">{{ item.job.experience }} • {{ item.job.salaryRange || 'Salary not disclosed' }}</p>
           </div>
         </div>
         
         <!-- Application Status -->
         <div class="application-details">
           <div class="status-section">
-            <span class="status-badge {{ getStatusClass(item.application.status) }}">
-              {{ item.application.status }}
-            </span>
+            <div class="status-row">
+              <label>Status:</label>
+              <select 
+                [value]="item.application.status" 
+                (change)="updateApplicationStatus(item.application, $event)"
+                class="status-select"
+                [class]="'status-select-' + item.application.status.toLowerCase().replace(' ', '-')">
+                <option value="">Select Status</option>
+                <option value="Applied" [selected]="item.application.status === 'Applied'" class="status-option-applied">Applied</option>
+                <option value="Under Review" [selected]="item.application.status === 'Under Review'" class="status-option-review">Under Review</option>
+                <option value="Interview" [selected]="item.application.status === 'Interview'" class="status-option-interview">Interview</option>
+                <option value="Accepted" [selected]="item.application.status === 'Accepted'" class="status-option-accepted">Accepted</option>
+                <option value="Rejected" [selected]="item.application.status === 'Rejected'" class="status-option-rejected">Rejected</option>
+              </select>
+            </div>
             <span class="applied-date">
               Applied on {{ item.application.applicationDate | date:'mediumDate' }}
             </span>
@@ -105,32 +116,7 @@
             </span>
           </div>
 
-          <!-- Application Information -->
-          <div class="application-info" *ngIf="!item.application.quickApply">
-            <div class="info-row" *ngIf="item.application.fullName">
-              <strong>Name:</strong> {{ item.application.fullName }}
-            </div>
-            <div class="info-row" *ngIf="item.application.email">
-              <strong>Email:</strong> {{ item.application.email }}
-            </div>
-            <div class="info-row" *ngIf="item.application.phone">
-              <strong>Phone:</strong> {{ item.application.phone }}
-            </div>
-            <div class="info-row" *ngIf="item.application.resumePath">
-              <strong>Resume:</strong> {{ item.application.resumePath }}
-            </div>
-            <div class="info-row cover-letter" *ngIf="item.application.coverLetter">
-              <strong>Cover Letter:</strong>
-              <p class="cover-letter-text">{{ item.application.coverLetter }}</p>
-            </div>
-          </div>
-          
-          <!-- Quick Apply Information -->
-          <div class="application-info" *ngIf="item.application.quickApply">
-            <div class="info-row">
-              <em>Applied using your profile information</em>
-            </div>
-          </div>
+          <!-- Job Details are now hidden and shown only in modal -->
           
           <!-- Actions -->
           <div class="actions">
@@ -146,17 +132,20 @@
               View Details
             </button>
             
+            <!-- Debug: Status = {{ item.application.status }} -->
             <button 
               *ngIf="canEdit(item.application.status)"
               (click)="editApplication(item.application)" 
-              class="action-btn edit-btn">
-              Edit
+              class="action-btn edit-btn"
+              title="Edit application details">
+              Edit Details
             </button>
             
             <button 
               *ngIf="canWithdraw(item.application.status)"
-              (click)="withdrawApplication(+item.application.id!)" 
-              class="action-btn withdraw-btn">
+              (click)="withdrawApplication(item.application.id + '')" 
+              class="action-btn withdraw-btn"
+              title="Withdraw this application">
               Withdraw
             </button>
           </div>
@@ -216,6 +205,54 @@
       
       <div class="modal-body" *ngIf="selectedApplication">
         <div class="details-section">
+          <h4>Job Information</h4>
+          <div class="details-grid">
+            <div class="detail-item">
+              <label>Job Title:</label>
+              <span>{{ selectedJob?.title }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Company:</label>
+              <span>{{ selectedJob?.company }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Location:</label>
+              <span>{{ selectedJob?.location }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Experience:</label>
+              <span>{{ selectedJob?.experience }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Salary:</label>
+              <span>₹{{ selectedJob?.salary | number }}</span>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="selectedJob?.description?.overview">
+            <label>Description:</label>
+            <p>{{ selectedJob?.description?.overview }}</p>
+          </div>
+          <div class="detail-item" *ngIf="selectedJob?.description?.responsibilities?.length">
+            <label>Responsibilities:</label>
+            <ul>
+              <li *ngFor="let resp of selectedJob?.description?.responsibilities">{{ resp }}</li>
+            </ul>
+          </div>
+          <div class="detail-item" *ngIf="selectedJob?.description?.qualifications?.length">
+            <label>Qualifications:</label>
+            <ul>
+              <li *ngFor="let qual of selectedJob?.description?.qualifications">{{ qual }}</li>
+            </ul>
+          </div>
+          <div class="detail-item" *ngIf="selectedJob?.description?.skills?.length">
+            <label>Skills Required:</label>
+            <div class="skills-container">
+              <span *ngFor="let skill of selectedJob?.description?.skills" class="job-skill">{{ skill }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-section">
           <h4>Application Information</h4>
           <div class="details-grid">
             <div class="detail-item">
@@ -230,7 +267,7 @@
             </div>
             <div class="detail-item">
               <label>Status:</label>
-              <span class="status-badge {{ getStatusClass(selectedApplication.status) }}">
+              <span class="status-text">
                 {{ selectedApplication.status }}
               </span>
             </div>
@@ -281,6 +318,94 @@
       
       <div class="modal-footer">
         <button (click)="closeDetailsModal()" class="close-modal-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Confirmation Modal -->
+  <div *ngIf="showEditConfirmModal" class="modal-overlay" (click)="closeEditConfirmModal()">
+    <div class="modal-content edit-confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>⚠️ Edit Application</h3>
+        <button (click)="closeEditConfirmModal()" class="close-btn">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-content">
+          <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="warning-text">
+            <p><strong>You have already submitted application details for this job.</strong></p>
+            <p>Are you sure you want to edit the details? This action will modify your original application information.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button (click)="closeEditConfirmModal()" class="cancel-btn">Cancel</button>
+        <button (click)="confirmEdit()" class="confirm-btn">Yes, Edit Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Withdrawal Warning Modal (Tailwind-styled) -->
+  <div *ngIf="showWithdrawModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.962-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+          </div>
+          <h3 class="ml-3 text-lg font-medium text-gray-900">Withdraw Application</h3>
+        </div>
+        <button (click)="closeWithdrawModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6">
+        <div class="mb-4">
+          <p class="text-sm text-gray-700 mb-3">
+            <strong class="text-gray-900">Are you sure you want to withdraw this application?</strong>
+          </p>
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <ul class="text-sm text-red-700 space-y-1">
+              <li class="flex items-start">
+                <span class="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                Remove your application from employer's consideration
+              </li>
+              <li class="flex items-start">
+                <span class="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                Change your application status to "Withdrawn"
+              </li>
+              <li class="flex items-start">
+                <span class="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                This action cannot be undone
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 rounded-b-lg">
+        <button 
+          (click)="closeWithdrawModal()" 
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+          Cancel
+        </button>
+        <button 
+          (click)="confirmWithdraw()" 
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+          Yes, Withdraw Application
+        </button>
       </div>
     </div>
   </div>

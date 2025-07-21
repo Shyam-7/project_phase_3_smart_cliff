@@ -59,9 +59,9 @@
           </div>
         </div>
 
-        <!-- Location Filter -->
+        <!-- Work Mode Filter -->
         <div class="mb-6">
-          <h4 class="font-medium mb-3">Location</h4>
+          <h4 class="font-medium mb-3">Work Mode</h4>
           <div class="space-y-2">
             <div *ngFor="let option of locationOptions" class="flex items-center">
               <input type="checkbox" [id]="'loc-'+option" [value]="option" [(ngModel)]="selectedLocations[option]"

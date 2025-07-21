@@ -78,6 +78,12 @@ export class JobService {
     });
   }
 
+  updateApplication(applicationId: string, applicationData: any): Observable<any> {
+    return this.http.put(`${apiConfig.apiUrl}/applications/${applicationId}`, applicationData, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   withdrawApplication(applicationId: string): Observable<any> {
     return this.http.delete(`${apiConfig.apiUrl}/applications/${applicationId}`, {
       headers: this.getAuthHeaders()

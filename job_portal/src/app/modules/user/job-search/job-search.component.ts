@@ -29,7 +29,7 @@ export class JobSearchComponent implements OnInit {
 
   // Filter options
   experienceOptions = ["0-1 year", "1-2 years", "2-5 years", "5-10 years", "10+ years"];
-  locationOptions = ["Bengaluru", "Delhi/NCR", "Mumbai", "Hyderabad", "Pune", "Chennai", "Remote"];
+  locationOptions = ["Remote", "Hybrid", "On-site"];
   salaryOptions = ["0-3 LPA", "3-6 LPA", "6-10 LPA", "10-15 LPA", "15-25 LPA", "25+ LPA"];
   companyTypeOptions = ["Startup", "MNC", "Corporate", "Government", "Non-Profit"];
 
@@ -160,7 +160,23 @@ export class JobSearchComponent implements OnInit {
     const activeLocFilters = Object.keys(this.selectedLocations).filter(k => this.selectedLocations[k]);
     if (activeLocFilters.length > 0) {
       filtered = filtered.filter(job =>
-        activeLocFilters.some(loc => this.matchLocation(job.location, loc)))
+        activeLocFilters.some(loc => {
+          // Handle work mode filters
+          if (loc === 'Remote') {
+            return job.location.toLowerCase().includes('remote') || 
+                   job.location.toLowerCase().includes('work from home') ||
+                   job.location.toLowerCase().includes('wfh');
+          } else if (loc === 'Hybrid') {
+            return job.location.toLowerCase().includes('hybrid');
+          } else if (loc === 'On-site') {
+            return !job.location.toLowerCase().includes('remote') && 
+                   !job.location.toLowerCase().includes('hybrid') &&
+                   !job.location.toLowerCase().includes('work from home');
+          } else {
+            // For city names, use the existing match function
+            return this.matchLocation(job.location, loc);
+          }
+        }))
     }
 
     // Salary filter

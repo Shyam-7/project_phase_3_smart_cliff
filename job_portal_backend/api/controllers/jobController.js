@@ -91,8 +91,17 @@ exports.getAllJobs = async (req, res) => {
     }
     
     if (location && location !== 'All') {
-      query += ' AND (location LIKE ? OR remote_allowed = TRUE)';
-      params.push(`%${location}%`);
+      if (location === 'Remote') {
+        query += ' AND (remote_allowed = TRUE OR location = "Remote")';
+      } else if (location === 'Hybrid') {
+        query += ' AND location = "Hybrid"';
+      } else if (location === 'On-site') {
+        query += ' AND (location = "On-site" OR (location NOT IN ("Remote", "Hybrid") AND remote_allowed = FALSE))';
+      } else {
+        // For city names
+        query += ' AND location LIKE ?';
+        params.push(`%${location}%`);
+      }
     }
     
     if (experience) {

@@ -72,6 +72,14 @@ export class ApplicationService {
     }
   }
 
+  // Remove job from applied list (for UI state)
+  removeFromAppliedJobs(jobId: string): void {
+    const currentApplied = this.appliedJobsSubject.value;
+    const filtered = currentApplied.filter(id => id !== jobId);
+    this.appliedJobsSubject.next(filtered);
+    this.saveAppliedJobsToStorage();
+  }
+
   // Load applied jobs from storage or API
   private loadAppliedJobs(): void {
     if (isPlatformBrowser(this.platformId) && typeof localStorage !== 'undefined') {

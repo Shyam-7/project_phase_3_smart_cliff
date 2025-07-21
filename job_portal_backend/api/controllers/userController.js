@@ -61,6 +61,7 @@ exports.getUserProfile = async (req, res) => {
 exports.updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
+    
     const {
       name,
       headline,
@@ -96,19 +97,18 @@ exports.updateUserProfile = async (req, res) => {
          experience = ?, 
          education = ?, 
          skills = ?,
-         cover_letter = ?,
          resume_url = ?,
          updated_at = NOW()
          WHERE user_id = ?`,
-        [about, phone, experience, education, skills, coverLetter, resume?.url || null, userId]
+        [about, phone, experience, education, skills, resume?.url || null, userId]
       );
     } else {
       // Create new profile
       await pool.query(
         `INSERT INTO job_seeker_profiles 
-         (user_id, bio, phone_number, experience, education, skills, cover_letter, resume_url) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [userId, about, phone, experience, education, skills, coverLetter, resume?.url || null]
+         (user_id, bio, phone_number, experience, education, skills, resume_url) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, about, phone, experience, education, skills, resume?.url || null]
       );
     }
     

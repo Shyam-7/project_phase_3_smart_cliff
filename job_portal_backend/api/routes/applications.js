@@ -2,7 +2,8 @@ const express = require('express');
 const { 
   applyToJob, 
   getUserApplications, 
-  withdrawApplication 
+  withdrawApplication,
+  updateApplication 
 } = require('../controllers/applicationController');
 const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -21,6 +22,11 @@ router.get('/user', protect, getUserApplications);
 // @desc    Get applications for a specific user
 // @access  Private (requires login)
 router.get('/user/:userId', protect, getUserApplications);
+
+// @route   PUT /api/applications/:id
+// @desc    Update an application
+// @access  Private (requires login)
+router.put('/:id', protect, updateApplication);
 
 // @route   DELETE /api/applications/:id
 // @desc    Withdraw an application

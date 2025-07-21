@@ -9,43 +9,86 @@ exports.applyToJob = async (req, res) => {
   console.log('Apply request received:', { userId, jobId, quickApply, fullName, email, phone });
 
   if (!jobId) {
+    console.log('Error: No jobId provided');
     return res.status(400).json({ message: 'Job ID is required.' });
   }
 
+  if (!userId) {
+    console.log('Error: No userId from authentication');
+    return res.status(400).json({ message: 'User ID is required.' });
+  }
+
   try {
-    // Check if user already applied for this job
+    // First check if the job exists
+    const [jobExists] = await pool.query(
+      'SELECT id FROM jobs WHERE id = ?',
+      [jobId]
+    );
+
+    if (jobExists.length === 0) {
+      console.log('Error: Job not found with ID:', jobId);
+      return res.status(404).json({ message: 'Job not found.' });
+    }
+
+    // Check if user already applied for this job (excluding withdrawn applications)
     const [existingApplication] = await pool.query(
-      'SELECT id FROM applications WHERE user_id = ? AND job_id = ?',
-      [userId, jobId]
+      'SELECT id FROM applications WHERE user_id = ? AND job_id = ? AND status != ?',
+      [userId, jobId, 'Withdrawn']
     );
 
     if (existingApplication.length > 0) {
+      console.log('Error: User already applied for job:', { userId, jobId });
       return res.status(400).json({ message: 'You have already applied for this job.' });
     }
 
-    const [result] = await pool.query(
+    console.log('Inserting application with values:', [userId, jobId, resumePath || null, coverLetter || null, fullName || null, email || null, phone || null, quickApply || false, 'Applied']);
+
+    const [insertResult] = await pool.query(
       `INSERT INTO applications (user_id, job_id, resume_url, cover_letter, full_name, email, phone, quick_apply, status) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, jobId, resumePath || null, coverLetter || null, fullName || null, email || null, phone || null, quickApply || false, 'applied']
+      [userId, jobId, resumePath || null, coverLetter || null, fullName || null, email || null, phone || null, quickApply || false, 'Applied']
     );
 
-    const applicationResponse = {
-      id: result.insertId,
-      jobId: jobId,
-      userId: userId,
-      applicationDate: new Date().toISOString(),
-      status: 'applied',
-      coverLetter: coverLetter || null,
-      resumePath: resumePath || null,
-      fullName: fullName || null,
-      email: email || null,
-      phone: phone || null,
-      quickApply: quickApply || false
+    console.log('INSERT query result:', insertResult);
+    console.log('insertId from MySQL:', insertResult.insertId, 'type:', typeof insertResult.insertId);
+
+    // For UUID fields, we need to query the newly inserted record to get the generated UUID
+    const [queryResult] = await pool.query(
+      'SELECT * FROM applications WHERE user_id = ? AND job_id = ? ORDER BY applied_at DESC LIMIT 1',
+      [userId, jobId]
+    );
+
+    console.log('SELECT query result:', queryResult);
+
+    if (queryResult.length === 0) {
+      throw new Error('Failed to retrieve newly created application');
+    }
+
+    const applicationRecord = queryResult[0];
+    console.log('Retrieved application record:', applicationRecord);
+    console.log('Application ID from record:', applicationRecord.id, 'type:', typeof applicationRecord.id);
+    
+    const finalApplicationResponse = {
+      id: applicationRecord.id, // This will be the UUID
+      jobId: applicationRecord.job_id,
+      userId: applicationRecord.user_id,
+      applicationDate: applicationRecord.applied_at,
+      status: applicationRecord.status,
+      coverLetter: applicationRecord.cover_letter,
+      resumePath: applicationRecord.resume_url,
+      fullName: applicationRecord.full_name,
+      email: applicationRecord.email,
+      phone: applicationRecord.phone,
+      quickApply: Boolean(applicationRecord.quick_apply)
     };
+
+    console.log('Final application response object:', finalApplicationResponse);
+    console.log('Final response ID:', finalApplicationResponse.id, 'type:', typeof finalApplicationResponse.id);
+    console.log('JSON.stringify of final response:', JSON.stringify(finalApplicationResponse));
 
     res.status(201).json({ 
       message: 'Application submitted successfully!', 
-      application: applicationResponse
+      application: finalApplicationResponse
     });
   } catch (error) {
     console.error(error);
@@ -82,7 +125,9 @@ exports.getUserApplications = async (req, res) => {
         j.description,
         j.requirements,
         j.views,
-        j.created_at as job_created_at
+        j.created_at as job_created_at,
+        j.salary_min,
+        j.salary_max
       FROM applications a
       JOIN jobs j ON a.job_id = j.id
       WHERE a.user_id = ?
@@ -96,7 +141,7 @@ exports.getUserApplications = async (req, res) => {
         jobId: row.job_id,
         userId: row.user_id,
         applicationDate: row.applied_at,
-        status: row.status,
+        status: row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Applied',
         coverLetter: row.cover_letter,
         resumeUrl: row.resume_url,
         fullName: row.full_name,
@@ -112,7 +157,10 @@ exports.getUserApplications = async (req, res) => {
         reviews: Math.floor(Math.random() * 1000) + 100,
         location: row.location,
         experience: row.experience_level,
-        salary: Math.floor(Math.random() * 50) + 50,
+        salary: row.salary_max ? Math.round(row.salary_max / 100000) : 0,
+        salaryRange: row.salary_min && row.salary_max ? 
+          `${Math.round(row.salary_min / 100000)}-${Math.round(row.salary_max / 100000)} LPA` : 
+          'Not disclosed',
         postedDate: row.job_created_at,
         summary: row.description ? row.description.substring(0, 150) + '...' : '',
         companyType: 'Corporate',
@@ -136,11 +184,12 @@ exports.getUserApplications = async (req, res) => {
   }
 };
 
-// Withdraw application
-exports.withdrawApplication = async (req, res) => {
+// Update application
+exports.updateApplication = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const { fullName, email, phone, coverLetter, status } = req.body;
     
     // Check if application belongs to user
     const [application] = await pool.query(
@@ -152,10 +201,77 @@ exports.withdrawApplication = async (req, res) => {
       return res.status(404).json({ message: 'Application not found.' });
     }
     
-    await pool.query('DELETE FROM applications WHERE id = ?', [id]);
-    res.json({ message: 'Application withdrawn successfully.' });
+    // Build update query dynamically based on provided fields
+    const updateFields = [];
+    const updateValues = [];
+    
+    if (fullName !== undefined) {
+      updateFields.push('full_name = ?');
+      updateValues.push(fullName);
+    }
+    if (email !== undefined) {
+      updateFields.push('email = ?');
+      updateValues.push(email);
+    }
+    if (phone !== undefined) {
+      updateFields.push('phone = ?');
+      updateValues.push(phone);
+    }
+    if (coverLetter !== undefined) {
+      updateFields.push('cover_letter = ?');
+      updateValues.push(coverLetter);
+    }
+    if (status !== undefined) {
+      updateFields.push('status = ?');
+      updateValues.push(status);
+    }
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: 'No fields to update.' });
+    }
+    
+    updateValues.push(id);
+    
+    await pool.query(
+      `UPDATE applications SET ${updateFields.join(', ')} WHERE id = ?`,
+      updateValues
+    );
+    
+    res.json({ message: 'Application updated successfully.' });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: 'Error updating application.' });
+  }
+};
+
+// Withdraw application
+exports.withdrawApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    console.log('Withdrawal request received:', { applicationId: id, userId });
+    
+    // Check if application belongs to user
+    const [application] = await pool.query(
+      'SELECT id, status FROM applications WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    
+    console.log('Application found:', application);
+    
+    if (application.length === 0) {
+      console.log('Application not found for withdrawal');
+      return res.status(404).json({ message: 'Application not found.' });
+    }
+    
+    // Update status to 'Withdrawn' instead of deleting
+    const [result] = await pool.query('UPDATE applications SET status = ? WHERE id = ?', ['Withdrawn', id]);
+    console.log('Withdrawal update result:', result);
+    
+    res.json({ message: 'Application withdrawn successfully.' });
+  } catch (error) {
+    console.error('Withdrawal error:', error);
     res.status(500).json({ message: 'Error withdrawing application.' });
   }
 };

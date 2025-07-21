@@ -38,6 +38,15 @@ export class AppliedJobsComponent implements OnInit {
   // Application details modal properties
   showDetailsModal = false;
   selectedApplication: JobApplication | null = null;
+  selectedJob: Job | null = null;
+
+  // Edit confirmation modal
+  showEditConfirmModal = false;
+  pendingEditApplication: JobApplication | null = null;
+
+  // Custom withdrawal warning modal
+  showWithdrawModal = false;
+  pendingWithdrawApplicationId: string | null = null;
 
   constructor(
     private jobService: JobService,
@@ -58,7 +67,12 @@ export class AppliedJobsComponent implements OnInit {
 
     this.jobService.getUserApplications(currentUser.id).subscribe({
       next: (data: { application: JobApplication; job: Job }[]) => {
-        this.applications = data;
+        // Filter out withdrawn applications - they should not be visible
+        this.applications = data.filter(item => item.application.status !== 'Withdrawn');
+        console.log('Loaded applications:', this.applications);
+        this.applications.forEach((item, index) => {
+          console.log(`Application ${index + 1}: Status = "${item.application.status}"`);
+        });
         this.filteredApplications = [...this.applications];
         this.sortApplications({ target: { value: this.currentSort } } as any);
         this.isLoading = false;
@@ -105,51 +119,129 @@ export class AppliedJobsComponent implements OnInit {
     this.router.navigate(['/user/job-details', jobId]);
   }
 
-  withdrawApplication(applicationId: number): void {
-    if (confirm('Are you sure you want to withdraw this application?')) {
-      this.jobService.withdrawApplication(applicationId.toString()).subscribe({
-        next: () => {
+  withdrawApplication(applicationId: string): void {
+    console.log('withdrawApplication called with ID:', applicationId, 'type:', typeof applicationId);
+    // Show custom Tailwind warning modal instead of browser confirm
+    this.pendingWithdrawApplicationId = applicationId;
+    this.showWithdrawModal = true;
+    console.log('Modal shown, pendingWithdrawApplicationId set to:', this.pendingWithdrawApplicationId);
+  }
+
+  confirmWithdraw(): void {
+    console.log('confirmWithdraw called, pendingWithdrawApplicationId:', this.pendingWithdrawApplicationId);
+    
+    if (this.pendingWithdrawApplicationId) {
+      const applicationId = this.pendingWithdrawApplicationId;
+      console.log('Proceeding with withdrawal for application ID:', applicationId);
+      this.closeWithdrawModal(); // Close modal first
+      
+      this.jobService.withdrawApplication(applicationId).subscribe({
+        next: (response) => {
+          console.log('Withdrawal successful:', response);
           this.loadApplications(); // Reload the applications
-          alert('Application withdrawn successfully');
+          alert('✅ Application withdrawn successfully');
         },
         error: (error) => {
           console.error('Error withdrawing application:', error);
-          alert('Failed to withdraw application');
+          alert('❌ Failed to withdraw application. Please try again.');
         }
       });
+    } else {
+      console.error('No pending withdrawal application ID found');
     }
   }
 
+  closeWithdrawModal(): void {
+    this.showWithdrawModal = false;
+    this.pendingWithdrawApplicationId = null;
+  }
+
+  updateApplicationStatus(application: JobApplication, event: any): void {
+    const newStatus = event.target.value;
+    console.log('Updating status from', application.status, 'to', newStatus);
+    
+    if (newStatus === application.status) {
+      return; // No change needed
+    }
+    
+    const applicationData = { status: newStatus };
+    
+    this.jobService.updateApplication(application.id!.toString(), applicationData).subscribe({
+      next: () => {
+        // Update local data
+        const index = this.applications.findIndex(item => 
+          item.application.id === application.id
+        );
+        if (index !== -1) {
+          this.applications[index].application.status = newStatus;
+          this.filterByStatus({ target: { value: this.selectedStatus } } as any);
+        }
+        console.log('Application status updated successfully');
+      },
+      error: (error) => {
+        console.error('Error updating application status:', error);
+        alert('Failed to update application status');
+        // Reset the select to original value
+        event.target.value = application.status;
+      }
+    });
+  }
+
   editApplication(application: JobApplication): void {
-    this.editingApplication = application;
-    this.editForm = {
-      fullName: application.fullName || '',
-      email: application.email || '',
-      phone: application.phone || '',
-      coverLetter: application.coverLetter || ''
-    };
-    this.showEditModal = true;
+    // Show confirmation modal first
+    this.pendingEditApplication = application;
+    this.showEditConfirmModal = true;
+  }
+
+  confirmEdit(): void {
+    if (this.pendingEditApplication) {
+      this.editingApplication = this.pendingEditApplication;
+      this.editForm = {
+        fullName: this.pendingEditApplication.fullName || '',
+        email: this.pendingEditApplication.email || '',
+        phone: this.pendingEditApplication.phone || '',
+        coverLetter: this.pendingEditApplication.coverLetter || ''
+      };
+      this.showEditModal = true;
+    }
+    this.closeEditConfirmModal();
+  }
+
+  closeEditConfirmModal(): void {
+    this.showEditConfirmModal = false;
+    this.pendingEditApplication = null;
   }
 
   saveEditedApplication(): void {
     if (this.editingApplication) {
-      const updatedApplication = {
-        ...this.editingApplication,
-        ...this.editForm
+      const applicationData = {
+        fullName: this.editForm.fullName,
+        email: this.editForm.email,
+        phone: this.editForm.phone,
+        coverLetter: this.editForm.coverLetter
       };
 
-      // Here you would call a service method to update the application
-      // For now, we'll just update the local data
-      const index = this.applications.findIndex(item => 
-        item.application.id === this.editingApplication?.id
-      );
-      if (index !== -1) {
-        this.applications[index].application = updatedApplication;
-        this.filteredApplications = [...this.applications];
-      }
-
-      this.closeEditModal();
-      alert('Application updated successfully');
+      this.jobService.updateApplication(this.editingApplication.id!.toString(), applicationData).subscribe({
+        next: () => {
+          // Update local data
+          const index = this.applications.findIndex(item => 
+            item.application.id === this.editingApplication?.id
+          );
+          if (index !== -1) {
+            this.applications[index].application = {
+              ...this.applications[index].application,
+              ...applicationData
+            };
+            this.filteredApplications = [...this.applications];
+          }
+          this.closeEditModal();
+          alert('Application updated successfully');
+        },
+        error: (error) => {
+          console.error('Error updating application:', error);
+          alert('Failed to update application');
+        }
+      });
     }
   }
 
@@ -158,20 +250,8 @@ export class AppliedJobsComponent implements OnInit {
     this.editingApplication = null;
   }
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'Applied': return 'status-applied';
-      case 'Under Review': return 'status-review';
-      case 'Interview': return 'status-interview';
-      case 'Accepted': return 'status-accepted';
-      case 'Rejected': return 'status-rejected';
-      case 'Withdrawn': return 'status-withdrawn';
-      default: return 'status-default';
-    }
-  }
-
   canWithdraw(status: string): boolean {
-    return ['Applied', 'Under Review'].includes(status);
+    return ['Applied', 'Under Review', 'Interview'].includes(status);
   }
 
   canEdit(status: string): boolean {
@@ -208,12 +288,16 @@ export class AppliedJobsComponent implements OnInit {
 
   viewApplicationDetails(application: JobApplication): void {
     this.selectedApplication = application;
+    // Find the corresponding job
+    const applicationItem = this.applications.find(item => item.application.id === application.id);
+    this.selectedJob = applicationItem ? applicationItem.job : null;
     this.showDetailsModal = true;
   }
 
   closeDetailsModal(): void {
     this.showDetailsModal = false;
     this.selectedApplication = null;
+    this.selectedJob = null;
   }
 
   private handleError(message: string): void {

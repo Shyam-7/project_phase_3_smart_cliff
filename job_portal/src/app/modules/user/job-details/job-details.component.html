@@ -71,12 +71,18 @@
               </button>
             </div>
             
-            <button 
-              *ngIf="hasApplied"
-              disabled
-              class="w-full bg-green-600 text-white px-6 py-2 rounded-lg cursor-not-allowed font-medium">
-              ✓ Applied
-            </button>
+            <div *ngIf="hasApplied" class="space-y-2">
+              <button 
+                disabled
+                class="w-full bg-green-600 text-white px-6 py-2 rounded-lg cursor-not-allowed font-medium">
+                ✓ Applied
+              </button>
+              <button 
+                (click)="withdrawApplication()"
+                class="w-full bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                Withdraw Application
+              </button>
+            </div>
           </div>
         </div>
       </div>

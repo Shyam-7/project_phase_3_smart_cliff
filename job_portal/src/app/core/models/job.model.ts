@@ -7,6 +7,7 @@ export interface Job {
   location: string;
   experience: string;
   salary?: number; // Added for sorting
+  salaryRange?: string; // Added for display
   postedDate?: string; // Added for sorting
   summary: string;
   companyType: string; // Added for company type

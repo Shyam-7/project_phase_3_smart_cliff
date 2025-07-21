@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { Job } from '../../../core/models/job.model';
-import { JobApplication } from '../../../core/models/job-application.model';
+import { JobApplication, JobApplicationRequest } from '../../../core/models/job-application.model';
 import { JobService } from '../../../core/services/job.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/services/user.service';
@@ -97,10 +97,20 @@ export class JobApplicationModalComponent implements OnInit {
   }
 
   async submit() {
+    // Prevent multiple rapid submissions
+    if (this.isSubmitting) {
+      console.log('Submit already in progress, ignoring...');
+      return;
+    }
+    
     this.isSubmitting = true;
     this.error = null;
     
+    console.log('Submit method called, applicationMode:', this.applicationMode);
+    
     const user = this.authService.getCurrentUser();
+    console.log('Current user from auth service:', user);
+    
     if (!user) {
       this.error = 'You must be logged in to apply';
       this.isSubmitting = false;
@@ -108,15 +118,12 @@ export class JobApplicationModalComponent implements OnInit {
     }
 
     try {
-      let application: JobApplication;
+      let application: JobApplicationRequest;
 
       if (this.applicationMode === 'quick') {
         // Use existing user profile for quick apply
         application = {
-          jobId: this.job.id,
-          userId: user.id,
-          applicationDate: new Date().toISOString(),
-          status: 'Applied',
+          jobId: this.job.id.toString(), // Ensure it's a string
           fullName: this.userProfile?.name || user.name || user.email,
           email: this.userProfile?.email || user.email,
           phone: this.userProfile?.phone || '',
@@ -130,12 +137,9 @@ export class JobApplicationModalComponent implements OnInit {
           this.isSubmitting = false;
           return;
         }
-        
+
         application = {
-          jobId: this.job.id,
-          userId: user.id,
-          applicationDate: new Date().toISOString(),
-          status: 'Applied',
+          jobId: this.job.id.toString(), // Ensure it's a string
           fullName: this.customApplicationData.fullName,
           email: this.customApplicationData.email,
           phone: this.customApplicationData.phone,
@@ -144,13 +148,16 @@ export class JobApplicationModalComponent implements OnInit {
           quickApply: false
         };
       }
-
+      
+      console.log('Submitting application with data:', application);
       const result = await firstValueFrom(this.jobService.applyToJob(application));
+      console.log('Application submission result:', result);
+      console.log('Result structure (JSON):', JSON.stringify(result, null, 2));
       this.applicationSubmitted.emit(result);
       this.closeModal.emit();
     } catch (error) {
+      console.error('Application submission error:', error);
       this.error = 'Failed to submit application. Please try again.';
-      console.error(error);
     } finally {
       this.isSubmitting = false;
     }
