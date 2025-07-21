@@ -30,9 +30,9 @@ exports.getUserProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      headline: profile.bio || '',
+      headline: profile.headline || '',
       phone: profile.phone_number || '',
-      location: '', // You might want to add location to your schema
+      location: profile.location || '',
       about: profile.bio || '',
       experience: profile.experience || '',
       education: profile.education || '',
@@ -62,6 +62,9 @@ exports.updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     
+    console.log('Updating profile for user:', userId);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     const {
       name,
       headline,
@@ -76,11 +79,15 @@ exports.updateUserProfile = async (req, res) => {
       jobPreferences
     } = req.body;
     
+    console.log('Extracted cover letter:', coverLetter);
+    
     // Update users table
     await pool.query(
       'UPDATE users SET name = ? WHERE id = ?',
       [name, userId]
     );
+    
+    console.log('Updated users table with name:', name);
     
     // Check if profile exists
     const [existingProfile] = await pool.query(
@@ -88,8 +95,11 @@ exports.updateUserProfile = async (req, res) => {
       [userId]
     );
     
+    console.log('Existing profile found:', existingProfile.length > 0);
+    
     if (existingProfile.length > 0) {
       // Update existing profile
+      console.log('Updating existing profile with cover letter:', coverLetter);
       await pool.query(
         `UPDATE job_seeker_profiles SET 
          bio = ?, 
@@ -97,21 +107,28 @@ exports.updateUserProfile = async (req, res) => {
          experience = ?, 
          education = ?, 
          skills = ?,
+         cover_letter = ?,
          resume_url = ?,
+         location = ?,
+         headline = ?,
          updated_at = NOW()
          WHERE user_id = ?`,
-        [about, phone, experience, education, skills, resume?.url || null, userId]
+        [about, phone, experience, education, skills, coverLetter, resume?.url || null, location, headline, userId]
       );
+      console.log('Profile updated successfully');
     } else {
       // Create new profile
+      console.log('Creating new profile with cover letter:', coverLetter);
       await pool.query(
         `INSERT INTO job_seeker_profiles 
-         (user_id, bio, phone_number, experience, education, skills, resume_url) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, about, phone, experience, education, skills, resume?.url || null]
+         (user_id, bio, phone_number, experience, education, skills, cover_letter, resume_url, location, headline) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, about, phone, experience, education, skills, coverLetter, resume?.url || null, location, headline]
       );
+      console.log('Profile created successfully');
     }
     
+    console.log('Profile update completed successfully');
     res.json({ message: 'Profile updated successfully!' });
   } catch (error) {
     console.error('Error updating user profile:', error);
