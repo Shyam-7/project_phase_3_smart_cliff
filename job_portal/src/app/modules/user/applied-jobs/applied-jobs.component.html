@@ -2,8 +2,8 @@
 
 <div class="applied-jobs-container">
   <!-- Page Header -->
-  <div class="page-header">            <div class="info-row" *ngIf="item.application.resumePath">
-              <strong>Resume:</strong> {{ item.application.resumePath }}</div>    <h1>My Applied Jobs</h1>
+  <div class="page-header">
+    <h1>My Applied Jobs</h1>
     <p class="page-subtitle">Track and manage your job applications</p>
   </div>
 
@@ -202,6 +202,85 @@
       <div class="modal-footer">
         <button (click)="closeEditModal()" class="cancel-btn">Cancel</button>
         <button (click)="saveEditedApplication()" class="save-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Details Modal -->
+  <div *ngIf="showDetailsModal" class="modal-overlay" (click)="closeDetailsModal()">
+    <div class="modal-content application-details-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Application Details</h3>
+        <button (click)="closeDetailsModal()" class="close-btn">&times;</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedApplication">
+        <div class="details-section">
+          <h4>Application Information</h4>
+          <div class="details-grid">
+            <div class="detail-item">
+              <label>Application Type:</label>
+              <span class="application-type" [class.quick-apply]="selectedApplication.quickApply">
+                {{ selectedApplication.quickApply ? 'Quick Apply' : 'Custom Apply' }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <label>Applied Date:</label>
+              <span>{{ selectedApplication.applicationDate | date:'full' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Status:</label>
+              <span class="status-badge {{ getStatusClass(selectedApplication.status) }}">
+                {{ selectedApplication.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-section" *ngIf="!selectedApplication.quickApply">
+          <h4>Personal Information</h4>
+          <div class="details-grid">
+            <div class="detail-item" *ngIf="selectedApplication.fullName">
+              <label>Full Name:</label>
+              <span>{{ selectedApplication.fullName }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedApplication.email">
+              <label>Email:</label>
+              <span>{{ selectedApplication.email }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedApplication.phone">
+              <label>Phone:</label>
+              <span>{{ selectedApplication.phone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-section" *ngIf="selectedApplication.quickApply">
+          <h4>Applied Using Profile</h4>
+          <p class="profile-info">This application was submitted using your saved profile information including your resume, contact details, and professional information.</p>
+        </div>
+
+        <div class="details-section" *ngIf="selectedApplication.resumePath">
+          <h4>Resume</h4>
+          <div class="resume-info">
+            <i class="fas fa-file-pdf"></i>
+            <span>{{ selectedApplication.resumePath }}</span>
+            <button class="download-btn" *ngIf="selectedApplication.resumePath">
+              <i class="fas fa-download"></i> Download
+            </button>
+          </div>
+        </div>
+
+        <div class="details-section" *ngIf="selectedApplication.coverLetter">
+          <h4>Cover Letter</h4>
+          <div class="cover-letter-content">
+            <p>{{ selectedApplication.coverLetter }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button (click)="closeDetailsModal()" class="close-modal-btn">Close</button>
       </div>
     </div>
   </div>

@@ -95,6 +95,7 @@ CREATE TABLE `job_seeker_profiles` (
   `experience` text,
   `education` text,
   `bio` text,
+  `cover_letter` text,
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
   `phone_number` varchar(50) DEFAULT NULL,
@@ -115,9 +116,9 @@ INSERT INTO users (id, name, email, password_hash, role, status, last_active_at)
 ('550e8400-e29b-41d4-a716-446655440003', 'Employer User', 'employer@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employer', 'active', NOW());
 
 -- Insert job seeker profiles
-INSERT INTO job_seeker_profiles (id, user_id, skills, experience, education, bio, first_name, last_name, phone_number) VALUES 
-('750e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440001', 'JavaScript, React, Node.js, MongoDB', '2 years software development experience', 'Bachelor of Computer Science', 'Passionate full-stack developer with experience in modern web technologies.', 'John', 'Doe', '+1234567890'),
-('750e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002', 'Python, Java, Django, AI/ML', '1+ years of experience in AI/ML', 'B.Tech in CSE(AI)', 'Hey! This is Shyam, passionate about AI and software development', 'Shyam', 'Kumar', '1234567890');
+INSERT INTO job_seeker_profiles (id, user_id, skills, experience, education, bio, cover_letter, first_name, last_name, phone_number) VALUES 
+('750e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440001', 'JavaScript, React, Node.js, MongoDB', '2 years software development experience', 'Bachelor of Computer Science', 'Passionate full-stack developer with experience in modern web technologies.', 'I am a dedicated software developer with 2 years of experience in building modern web applications. I am passionate about creating efficient and user-friendly solutions.', 'John', 'Doe', '+1234567890'),
+('750e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002', 'Python, Java, Django, AI/ML', '1+ years of experience in AI/ML', 'B.Tech in CSE(AI)', 'Hey! This is Shyam, passionate about AI and software development', 'I am passionate about artificial intelligence and machine learning technologies. With my background in AI and software development, I bring innovative solutions to complex problems.', 'Shyam', 'Kumar', '1234567890');
 
 -- Insert sample jobs
 INSERT INTO jobs (id, title, company_name, location, employment_type, experience_level, category, description, requirements, posted_by, views, expires_at, salary_min, salary_max, company_rating, company_reviews_count, remote_allowed, skills_required, benefits, company_size, company_type) VALUES 

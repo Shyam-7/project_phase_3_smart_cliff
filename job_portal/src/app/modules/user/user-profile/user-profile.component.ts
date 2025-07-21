@@ -50,6 +50,7 @@ export class UserProfileComponent implements OnInit {
       experience: [data.experience || ''],
       education: [data.education || ''],
       skills: [data.skills || ''],
+      coverLetter: [data.coverLetter || ''],
       resume: [data.resume || null],
       jobPreferences: this.fb.group({
         title: [data.jobPreferences?.title || ''],

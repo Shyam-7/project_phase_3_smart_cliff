@@ -117,10 +117,10 @@ export class JobApplicationModalComponent implements OnInit {
           userId: user.id,
           applicationDate: new Date().toISOString(),
           status: 'Applied',
-          fullName: this.userProfile?.fullName || user.fullName || user.email,
+          fullName: this.userProfile?.name || user.name || user.email,
           email: this.userProfile?.email || user.email,
           phone: this.userProfile?.phone || '',
-          coverLetter: `I am interested in applying for the ${this.job.title} position at ${this.job.company}. Please consider my application.`,
+          coverLetter: this.userProfile?.coverLetter || `I am interested in applying for the ${this.job.title} position at ${this.job.company}. Please consider my application based on my profile and experience.`,
           resumePath: this.userProfile?.resumePath || null,
           quickApply: true
         };

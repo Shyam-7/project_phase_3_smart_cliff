@@ -35,6 +35,10 @@ export class AppliedJobsComponent implements OnInit {
     coverLetter: ''
   };
 
+  // Application details modal properties
+  showDetailsModal = false;
+  selectedApplication: JobApplication | null = null;
+
   constructor(
     private jobService: JobService,
     private authService: AuthService,
@@ -203,24 +207,13 @@ export class AppliedJobsComponent implements OnInit {
   }
 
   viewApplicationDetails(application: JobApplication): void {
-    // Create a detailed view modal or navigate to a details page
-    const details = {
-      'Application Type': application.quickApply ? 'Quick Apply' : 'Custom Apply',
-      'Full Name': application.fullName || 'Not provided',
-      'Email': application.email || 'Not provided',
-      'Phone': application.phone || 'Not provided',
-      'Resume': application.resumePath || 'Not provided',
-      'Cover Letter': application.coverLetter || 'Not provided',
-      'Applied Date': new Date(application.applicationDate).toLocaleDateString(),
-      'Status': application.status
-    };
+    this.selectedApplication = application;
+    this.showDetailsModal = true;
+  }
 
-    let message = 'Application Details:\n\n';
-    Object.entries(details).forEach(([key, value]) => {
-      message += `${key}: ${value}\n`;
-    });
-
-    alert(message); // For now, using alert. In production, you'd use a proper modal
+  closeDetailsModal(): void {
+    this.showDetailsModal = false;
+    this.selectedApplication = null;
   }
 
   private handleError(message: string): void {

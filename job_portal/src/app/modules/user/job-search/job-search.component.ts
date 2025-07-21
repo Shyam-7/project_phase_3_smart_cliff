@@ -160,7 +160,7 @@ export class JobSearchComponent implements OnInit {
     const activeLocFilters = Object.keys(this.selectedLocations).filter(k => this.selectedLocations[k]);
     if (activeLocFilters.length > 0) {
       filtered = filtered.filter(job =>
-        activeLocFilters.some(loc => job.location.includes(loc)))
+        activeLocFilters.some(loc => this.matchLocation(job.location, loc)))
     }
 
     // Salary filter
@@ -306,5 +306,35 @@ export class JobSearchComponent implements OnInit {
   sortJobs(): void {
     // Sorting is now handled by the backend
     // This method kept for compatibility but does nothing
+  }
+
+  private matchLocation(jobLocation: string, filterLocation: string): boolean {
+    if (!jobLocation || !filterLocation) return false;
+    
+    const normalizeLocation = (loc: string) => loc.toLowerCase().trim()
+      .replace(/[,\-\/]/g, ' ')
+      .replace(/\s+/g, ' ');
+    
+    const normalizedJobLocation = normalizeLocation(jobLocation);
+    const normalizedFilterLocation = normalizeLocation(filterLocation);
+    
+    // Direct match
+    if (normalizedJobLocation.includes(normalizedFilterLocation)) {
+      return true;
+    }
+    
+    // Handle common location aliases
+    const locationAliases: { [key: string]: string[] } = {
+      'bengaluru': ['bangalore', 'blr'],
+      'bangalore': ['bengaluru', 'blr'],
+      'delhi/ncr': ['delhi', 'ncr', 'gurgaon', 'noida', 'new delhi', 'gurugram'],
+      'delhi': ['delhi/ncr', 'new delhi'],
+      'ncr': ['delhi/ncr', 'gurgaon', 'noida', 'gurugram'],
+      'mumbai': ['bombay'],
+      'remote': ['work from home', 'wfh', 'anywhere']
+    };
+    
+    const aliases = locationAliases[normalizedFilterLocation] || [];
+    return aliases.some((alias: string) => normalizedJobLocation.includes(alias));
   }
 }
