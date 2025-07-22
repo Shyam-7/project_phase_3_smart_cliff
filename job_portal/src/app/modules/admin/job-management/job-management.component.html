@@ -118,8 +118,8 @@
       </div>
       <div class="p-6">
         <form (ngSubmit)="saveJob()">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <!-- Basic Info -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Basic Info Column 1 -->
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Job Title*</label>
@@ -127,8 +127,8 @@
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Company*</label>
-                <input type="text" [(ngModel)]="selectedJob.company" name="company" required
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company Name*</label>
+                <input type="text" [(ngModel)]="selectedJob.company_name" name="company_name" required
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
@@ -137,47 +137,162 @@
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Experience</label>
-                <input type="text" [(ngModel)]="selectedJob.experience" name="experience"
+                <label class="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
+                <select [(ngModel)]="selectedJob.employment_type" name="employment_type"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Select Employment Type</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Temporary">Temporary</option>
+                  <option value="Internship">Internship</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Experience Level</label>
+                <select [(ngModel)]="selectedJob.experience_level" name="experience_level"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Select Experience Level</option>
+                  <option value="Entry Level">Entry Level</option>
+                  <option value="0-1 years">0-1 years</option>
+                  <option value="1-3 years">1-3 years</option>
+                  <option value="3-5 years">3-5 years</option>
+                  <option value="5-8 years">5-8 years</option>
+                  <option value="8+ years">8+ years</option>
+                  <option value="Senior Level">Senior Level</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Company & Salary Info Column 2 -->
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select [(ngModel)]="selectedJob.category" name="category"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Select Category</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Design">Design</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Customer Service">Customer Service</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company Type</label>
+                <select [(ngModel)]="selectedJob.company_type" name="company_type"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="Corporate">Corporate</option>
+                  <option value="Startup">Startup</option>
+                  <option value="Non-profit">Non-profit</option>
+                  <option value="Government">Government</option>
+                  <option value="Agency">Agency</option>
+                  <option value="Consulting">Consulting</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company Size</label>
+                <select [(ngModel)]="selectedJob.company_size" name="company_size"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Select Company Size</option>
+                  <option value="1-10">1-10 employees</option>
+                  <option value="11-50">11-50 employees</option>
+                  <option value="51-200">51-200 employees</option>
+                  <option value="201-500">201-500 employees</option>
+                  <option value="501-1000">501-1000 employees</option>
+                  <option value="1000+">1000+ employees</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Min Salary (LPA)</label>
+                  <input type="number" [(ngModel)]="selectedJob.salary_min" name="salary_min" min="0" step="0.5"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Max Salary (LPA)</label>
+                  <input type="number" [(ngModel)]="selectedJob.salary_max" name="salary_max" min="0" step="0.5"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Expires At</label>
+                <input type="date" [(ngModel)]="selectedJob.expires_at" name="expires_at"
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
 
-            <!-- Additional Info -->
+            <!-- Additional Info Column 3 -->
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Salary</label>
-                <input type="number" [(ngModel)]="selectedJob.salary" name="salary"
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company Rating</label>
+                <input type="number" [(ngModel)]="selectedJob.company_rating" name="company_rating" min="0" max="5" step="0.1"
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                <input type="number" [(ngModel)]="selectedJob.rating" name="rating" min="0" max="5" step="0.1"
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reviews Count</label>
+                <input type="number" [(ngModel)]="selectedJob.company_reviews_count" name="company_reviews_count" min="0"
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Reviews</label>
-                <input type="number" [(ngModel)]="selectedJob.reviews" name="reviews"
+                <label class="block text-sm font-medium text-gray-700 mb-1">Job Status</label>
+                <select [(ngModel)]="selectedJob.status" name="status"
                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="draft">Draft</option>
+                  <option value="expired">Expired</option>
+                </select>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" [(ngModel)]="selectedJob.remote_allowed" name="remote_allowed" id="remote_allowed"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="remote_allowed" class="ml-2 block text-sm text-gray-900">Remote Work Allowed</label>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
-                <input type="text" [(ngModel)]="tagsInput" name="tags"
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Skills Required (comma separated)</label>
+                <textarea [(ngModel)]="selectedJob.skills_required" name="skills_required" rows="3"
+                  placeholder="JavaScript, React, Node.js, MongoDB"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
               </div>
             </div>
           </div>
 
-          <!-- Job Description -->
+          <!-- Job Description & Requirements -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+              <textarea [(ngModel)]="selectedJob.description" name="description" rows="4"
+                placeholder="Describe the role, responsibilities, and what the candidate will be doing..."
+                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
+              <textarea [(ngModel)]="selectedJob.requirements" name="requirements" rows="4"
+                placeholder="List the qualifications, experience, and requirements for this position..."
+                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+          </div>
+
+          <!-- Benefits & Additional Info -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Job Summary</label>
-            <textarea [(ngModel)]="selectedJob.summary" name="summary" rows="3"
+            <label class="block text-sm font-medium text-gray-700 mb-1">Benefits & Perks</label>
+            <textarea [(ngModel)]="selectedJob.benefits" name="benefits" rows="3"
+              placeholder="Health insurance, flexible working hours, professional development, etc..."
               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
           </div>
 
+          <!-- Legacy Summary Field (for backward compatibility) -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Job Overview</label>
-            <textarea [(ngModel)]="selectedJob.description.overview" name="overview" rows="3"
+            <label class="block text-sm font-medium text-gray-700 mb-1">Job Summary</label>
+            <textarea [(ngModel)]="selectedJob.summary" name="summary" rows="2"
+              placeholder="Brief summary of the job position..."
               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
           </div>
 

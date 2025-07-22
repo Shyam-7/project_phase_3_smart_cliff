@@ -97,7 +97,8 @@ export class JobDetailsComponent implements OnInit {
   }
 
   getCompanyInitials(): string {
-    return this.job?.company.charAt(0) || '?';
+    const company = this.job?.company || this.job?.company_name || '';
+    return company.charAt(0) || '?';
   }
 
   navigateBack(): void {

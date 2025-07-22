@@ -1,5 +1,12 @@
 const express = require('express');
-const { getAllJobs, getJobById } = require('../controllers/jobController');
+const { 
+  getAllJobs, 
+  getJobById, 
+  createJob, 
+  updateJob, 
+  deleteJob 
+} = require('../controllers/jobController');
+const { protect, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // @route   GET /api/jobs
@@ -12,8 +19,19 @@ router.get('/', getAllJobs);
 // @access  Public
 router.get('/:id', getJobById);
 
-// Add more routes here for creating, updating, or deleting jobs
-// For example, a protected route for an employer to post a job:
-// router.post('/', protect, createJob);
+// @route   POST /api/jobs
+// @desc    Create a new job
+// @access  Private/Admin
+router.post('/', protect, admin, createJob);
+
+// @route   PUT /api/jobs/:id
+// @desc    Update an existing job
+// @access  Private/Admin
+router.put('/:id', protect, admin, updateJob);
+
+// @route   DELETE /api/jobs/:id
+// @desc    Delete a job
+// @access  Private/Admin
+router.delete('/:id', protect, admin, deleteJob);
 
 module.exports = router;

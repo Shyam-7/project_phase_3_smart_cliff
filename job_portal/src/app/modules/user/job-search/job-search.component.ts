@@ -153,30 +153,32 @@ export class JobSearchComponent implements OnInit {
     const activeExpFilters = Object.keys(this.selectedExperience).filter(k => this.selectedExperience[k]);
     if (activeExpFilters.length > 0) {
       filtered = filtered.filter(job =>
-        activeExpFilters.some(exp => this.matchExperience(job.experience, exp)))
+        activeExpFilters.some(exp => this.matchExperience(job.experience || job.experience_level || '', exp)))
     }
 
     // Location filter
     const activeLocFilters = Object.keys(this.selectedLocations).filter(k => this.selectedLocations[k]);
     if (activeLocFilters.length > 0) {
-      filtered = filtered.filter(job =>
-        activeLocFilters.some(loc => {
+      filtered = filtered.filter(job => {
+        const location = job.location || '';
+        return activeLocFilters.some(loc => {
           // Handle work mode filters
           if (loc === 'Remote') {
-            return job.location.toLowerCase().includes('remote') || 
-                   job.location.toLowerCase().includes('work from home') ||
-                   job.location.toLowerCase().includes('wfh');
+            return location.toLowerCase().includes('remote') || 
+                   location.toLowerCase().includes('work from home') ||
+                   location.toLowerCase().includes('wfh');
           } else if (loc === 'Hybrid') {
-            return job.location.toLowerCase().includes('hybrid');
+            return location.toLowerCase().includes('hybrid');
           } else if (loc === 'On-site') {
-            return !job.location.toLowerCase().includes('remote') && 
-                   !job.location.toLowerCase().includes('hybrid') &&
-                   !job.location.toLowerCase().includes('work from home');
+            return !location.toLowerCase().includes('remote') && 
+                   !location.toLowerCase().includes('hybrid') &&
+                   !location.toLowerCase().includes('work from home');
           } else {
             // For city names, use the existing match function
-            return this.matchLocation(job.location, loc);
+            return this.matchLocation(location, loc);
           }
-        }))
+        });
+      });
     }
 
     // Salary filter
@@ -196,14 +198,17 @@ export class JobSearchComponent implements OnInit {
     // Then apply search queries
     if (this.searchQuery || this.locationQuery) {
       filtered = filtered.filter(job => {
+        const company = job.company || job.company_name || '';
+        const location = job.location || '';
+        
         const matchesSearch = this.searchQuery
-          ? job.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          job.company.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          ? job.title?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          company.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
           (job.tags && job.tags.some(tag => tag.toLowerCase().includes(this.searchQuery.toLowerCase())))
           : true;
 
         const matchesLocation = this.locationQuery
-          ? job.location.toLowerCase().includes(this.locationQuery.toLowerCase())
+          ? location.toLowerCase().includes(this.locationQuery.toLowerCase())
           : true;
 
         return matchesSearch && matchesLocation;
