@@ -50,6 +50,7 @@ export class JobDetailsComponent implements OnInit {
     console.log('Loading job details for ID:', jobId);
     this.jobService.getJobById(jobId).subscribe({
       next: (job) => {
+        console.log('Received job data:', job);
         this.job = job;
         this.loading = false;
         // Check if user has already applied to this job

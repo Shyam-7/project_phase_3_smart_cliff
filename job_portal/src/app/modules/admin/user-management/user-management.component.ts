@@ -1,17 +1,17 @@
 // user-management.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { UserService } from '../../../core/services/user.service';
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: 'Job Seeker' | 'Employer' | 'Admin';
-  status: 'Active' | 'Suspended';
-  joinDate: string;
-  applications: number;
+  role: string;
+  status: string;
+  created_at: string;
+  applications?: number;
 }
 
 @Component({
@@ -21,81 +21,19 @@ interface User {
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css']
 })
-export class UserManagementComponent {
-  users: User[] = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@email.com',
-      role: 'Job Seeker',
-      status: 'Active',
-      joinDate: 'Jan 15, 2024',
-      applications: 5
-    },
-    {
-      id: 2,
-      name: 'Morgan Wilson',
-      email: 'morganwilson@email.com',
-      role: 'Job Seeker',
-      status: 'Active',
-      joinDate: 'Jan 16, 2024',
-      applications: 6
-    },
-    {
-      id: 3,
-      name: 'Jason Mulberry',
-      email: 'jason.mulberry@email.com',
-      role: 'Job Seeker',
-      status: 'Active',
-      joinDate: 'Jan 16, 2024',
-      applications: 2
-    },
-    {
-      id: 4,
-      name: 'Emily Shorrett',
-      email: 'emily.shorrett@email.com',
-      role: 'Employer',
-      status: 'Active',
-      joinDate: 'Jan 18, 2024',
-      applications: 3
-    },
-    {
-      id: 5,
-      name: 'Bryan Kilgore',
-      email: 'bryan.kilgore@email.com',
-      role: 'Job Seeker',
-      status: 'Active',
-      joinDate: 'Jan 19, 2024',
-      applications: 3
-    },
-    {
-      id: 6,
-      name: 'Laura Dennett',
-      email: 'laura.dennett@email.com',
-      role: 'Job Seeker',
-      status: 'Active',
-      joinDate: 'Jan 21, 2024',
-      applications: 0
-    },
-    {
-      id: 7,
-      name: 'Rachel Tomlin',
-      email: 'rachel.tomlin@email.com',
-      role: 'Employer',
-      status: 'Active',
-      joinDate: 'Jan 25, 2024',
-      applications: 1
-    }
-  ];
-
+export class UserManagementComponent implements OnInit {
+  users: User[] = [];
   filteredUsers: User[] = [];
   searchTerm: string = '';
   currentPage: number = 1;
   itemsPerPage: number = 5;
   selectedStatus: string = 'All';
   selectedRole: string = 'All';
-  showSuspendDialog: boolean = false;
-  userToSuspend: User | null = null;
+  showViewDialog: boolean = false;
+  showDeleteDialog: boolean = false;
+  selectedUser: User | null = null;
+  userToDelete: User | null = null;
+  isLoading: boolean = false;
 
   // Stats
   totalUsers: number = 0;
@@ -103,23 +41,62 @@ export class UserManagementComponent {
   employers: number = 0;
   activeUsers: number = 0;
 
-  constructor() {
-    this.filteredUsers = [...this.users];
-    this.updateStats();
+  constructor(private userService: UserService) {}
+
+  ngOnInit(): void {
+    this.loadUsers();
   }
 
-  // Add this method to your UserManagementComponent class
-  openSuspendDialog(user: User): void {
-    this.userToSuspend = user;
-    this.showSuspendDialog = true;
+  loadUsers(): void {
+    this.isLoading = true;
+    this.userService.getAllUsers().subscribe({
+      next: (users) => {
+        // Transform the data to match our interface
+        this.users = users.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: this.normalizeRole(user.role),
+          status: this.normalizeStatus(user.status),
+          created_at: user.created_at,
+          applications: 0 // Will be populated later if needed
+        }));
+        this.filteredUsers = [...this.users];
+        this.filterUsers();
+        this.updateStats();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.isLoading = false;
+        alert('Failed to load users. Please try again.');
+      }
+    });
   }
 
-  min(a: number, b: number): number {
-    return Math.min(a, b);
+  normalizeRole(role: string): string {
+    switch (role?.toLowerCase()) {
+      case 'job_seeker':
+        return 'Job Seeker';
+      case 'employer':
+        return 'Employer';
+      case 'admin':
+        return 'Admin';
+      default:
+        return role || 'Unknown';
+    }
   }
 
-  ceil(num: number): number {
-    return Math.ceil(num);
+  normalizeStatus(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'Active';
+      case 'inactive':
+      case 'suspended':
+        return 'Suspended';
+      default:
+        return status || 'Unknown';
+    }
   }
 
   updateStats(): void {
@@ -139,7 +116,6 @@ export class UserManagementComponent {
       return matchesSearch && matchesStatus && matchesRole;
     });
     this.currentPage = 1;
-    this.updateStats();
   }
 
   get paginatedUsers(): User[] {
@@ -155,21 +131,101 @@ export class UserManagementComponent {
     this.currentPage = page;
   }
 
-  toggleStatus(user: User): void {
-    user.status = user.status === 'Active' ? 'Suspended' : 'Active';
-    this.updateStats();
+  // View user details
+  viewUser(user: User): void {
+    this.selectedUser = user;
+    this.showViewDialog = true;
   }
 
-  deleteUser(id: number): void {
-    this.users = this.users.filter(user => user.id !== id);
-    this.filterUsers();
+  closeViewDialog(): void {
+    this.showViewDialog = false;
+    this.selectedUser = null;
   }
+
+  // Delete user functionality
+  openDeleteDialog(user: User): void {
+    // Don't allow deleting admin users
+    if (user.role === 'Admin') {
+      alert('Cannot delete admin users.');
+      return;
+    }
+    this.userToDelete = user;
+    this.showDeleteDialog = true;
+  }
+
+  closeDeleteDialog(): void {
+    this.showDeleteDialog = false;
+    this.userToDelete = null;
+  }
+
+  confirmDelete(): void {
+    if (!this.userToDelete) return;
+
+    this.userService.deleteUser(this.userToDelete.id).subscribe({
+      next: (response) => {
+        console.log('User deleted successfully:', response);
+        // Remove user from local array
+        this.users = this.users.filter(user => user.id !== this.userToDelete!.id);
+        this.filterUsers();
+        this.updateStats();
+        this.closeDeleteDialog();
+        alert('User deleted successfully!');
+      },
+      error: (error) => {
+        console.error('Error deleting user:', error);
+        alert('Failed to delete user. Please try again.');
+      }
+    });
+  }
+
+  // Toggle user status
+  toggleStatus(user: User): void {
+    const newStatus = user.status === 'Active' ? 'inactive' : 'active';
+    
+    this.userService.updateUserStatus(user.id, newStatus).subscribe({
+      next: (response) => {
+        console.log('User status updated:', response);
+        // Update local user status
+        user.status = this.normalizeStatus(newStatus);
+        this.updateStats();
+      },
+      error: (error) => {
+        console.error('Error updating user status:', error);
+        alert('Failed to update user status. Please try again.');
+      }
+    });
+  }
+
+  // Utility methods
+  min(a: number, b: number): number {
+    return Math.min(a, b);
+  }
+
+  ceil(num: number): number {
+    return Math.ceil(num);
+  }
+
+  formatDate(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return dateString;
+    }
+  }
+
   getRoleClass(role: string): string {
     switch (role) {
       case 'Job Seeker':
         return 'px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800';
       case 'Employer':
         return 'px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800';
+      case 'Admin':
+        return 'px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800';
       default:
         return 'px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800';
     }

@@ -94,26 +94,25 @@
         <div class="application-details">
           <div class="status-section">
             <div class="status-row">
-              <label>Status:</label>
-              <select 
-                [value]="item.application.status" 
-                (change)="updateApplicationStatus(item.application, $event)"
-                class="status-select"
-                [class]="'status-select-' + item.application.status.toLowerCase().replace(' ', '-')">
-                <option value="">Select Status</option>
-                <option value="Applied" [selected]="item.application.status === 'Applied'" class="status-option-applied">Applied</option>
-                <option value="Under Review" [selected]="item.application.status === 'Under Review'" class="status-option-review">Under Review</option>
-                <option value="Interview" [selected]="item.application.status === 'Interview'" class="status-option-interview">Interview</option>
-                <option value="Accepted" [selected]="item.application.status === 'Accepted'" class="status-option-accepted">Accepted</option>
-                <option value="Rejected" [selected]="item.application.status === 'Rejected'" class="status-option-rejected">Rejected</option>
-              </select>
+              <label class="status-label">
+                <i class="fas fa-info-circle"></i>
+                Status:
+              </label>
+              <div class="status-badge" [ngClass]="getStatusClass(item.application.status)">
+                <i [class]="getStatusIcon(item.application.status)"></i>
+                {{ item.application.status }}
+              </div>
             </div>
-            <span class="applied-date">
-              Applied on {{ item.application.applicationDate | date:'mediumDate' }}
-            </span>
-            <span class="application-type" [class.quick-apply]="item.application.quickApply">
-              {{ item.application.quickApply ? 'Quick Apply' : 'Custom Apply' }}
-            </span>
+            <div class="application-metadata">
+              <span class="applied-date">
+                <i class="fas fa-calendar-alt"></i>
+                Applied on {{ item.application.applicationDate | date:'mediumDate' }}
+              </span>
+              <span class="application-type" [class.quick-apply]="item.application.quickApply">
+                <i [class]="item.application.quickApply ? 'fas fa-bolt' : 'fas fa-file-alt'"></i>
+                {{ item.application.quickApply ? 'Quick Apply' : 'Custom Apply' }}
+              </span>
+            </div>
           </div>
 
           <!-- Job Details are now hidden and shown only in modal -->
@@ -122,14 +121,18 @@
           <div class="actions">
             <button 
               (click)="viewJobDetails(item.application.jobId)" 
-              class="action-btn view-btn">
+              class="action-btn view-job-btn"
+              title="View job posting">
+              <i class="fas fa-external-link-alt"></i>
               View Job
             </button>
             
             <button 
               (click)="viewApplicationDetails(item.application)" 
-              class="action-btn details-btn">
-              View Details
+              class="action-btn details-btn"
+              title="View application details">
+              <i class="fas fa-eye"></i>
+              View Application Details
             </button>
             
             <!-- Debug: Status = {{ item.application.status }} -->
@@ -138,6 +141,7 @@
               (click)="editApplication(item.application)" 
               class="action-btn edit-btn"
               title="Edit application details">
+              <i class="fas fa-edit"></i>
               Edit Details
             </button>
             
@@ -146,6 +150,7 @@
               (click)="withdrawApplication(item.application.id + '')" 
               class="action-btn withdraw-btn"
               title="Withdraw this application">
+              <i class="fas fa-times-circle"></i>
               Withdraw
             </button>
           </div>

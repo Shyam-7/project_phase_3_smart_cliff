@@ -13,12 +13,12 @@
 
   <div *ngIf="!loading; else loadingIndicator">
     <div *ngIf="job; else errorMessage" class="space-y-6">
-      <!-- Job Header -->
-      <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-start space-x-4">
           <div class="flex-shrink-0">
             <div
-              [class]="job.color + ' h-12 w-12 rounded-full flex items-center justify-center text-white text-xl font-bold'">
+              class="h-12 w-12 rounded-full flex items-center justify-center text-white text-xl font-bold"
+              [style.background-color]="job.color || '#3B82F6'">
               {{ getCompanyInitials() }}
             </div>
           </div>
@@ -31,7 +31,7 @@
                   <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
                     clip-rule="evenodd" />
                 </svg>
-                {{ job.company }}
+                {{ job.company || job.company_name }}
               </div>
               <div class="mt-2 flex items-center text-sm text-gray-500">
                 <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +49,7 @@
                     d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
                     clip-rule="evenodd" />
                 </svg>
-                Posted {{ (job.postedDate || job.posted) | timeAgo }}
+                Posted {{ (job.postedDate || job.posted || job.created_at) | timeAgo }}
               </div>
               <div class="mt-2 flex items-center text-sm text-gray-500">
                 <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +58,16 @@
                     d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z"
                     clip-rule="evenodd" />
                 </svg>
-                {{ job.experience }}
+                {{ job.experience || job.experience_level }}
+              </div>
+              <div *ngIf="job.salaryRange" class="mt-2 flex items-center text-sm text-gray-500">
+                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                    clip-rule="evenodd" />
+                </svg>
+                {{ job.salaryRange }}
               </div>
             </div>
           </div>
@@ -94,24 +103,46 @@
 
           <div class="prose max-w-none">
             <h3 class="text-md font-medium text-gray-800">Overview</h3>
-            <p class="text-gray-600">{{ job.description.overview }}</p>
+            <p class="text-gray-600">{{ job.description?.overview || job.description || job.summary || 'No description available' }}</p>
 
-            <h3 class="text-md font-medium text-gray-800 mt-6">Responsibilities</h3>
-            <ul class="list-disc pl-5 text-gray-600">
-              <li *ngFor="let responsibility of job.description.responsibilities">{{ responsibility }}</li>
-            </ul>
+            <h3 *ngIf="job.requirements" class="text-md font-medium text-gray-800 mt-6">Requirements</h3>
+            <div *ngIf="job.requirements" class="text-gray-600">
+              <div *ngIf="job.description?.responsibilities && job.description.responsibilities.length > 0; else requirementsText">
+                <ul class="list-disc pl-5">
+                  <li *ngFor="let responsibility of job.description.responsibilities">{{ responsibility }}</li>
+                </ul>
+              </div>
+              <ng-template #requirementsText>
+                <p>{{ job.requirements }}</p>
+              </ng-template>
+            </div>
 
-            <h3 class="text-md font-medium text-gray-800 mt-6">Qualifications</h3>
-            <ul class="list-disc pl-5 text-gray-600">
-              <li *ngFor="let qualification of job.description.qualifications">{{ qualification }}</li>
-            </ul>
+            <h3 *ngIf="job.skills_required || (job.description?.skills && job.description.skills.length > 0)" class="text-md font-medium text-gray-800 mt-6">Skills Required</h3>
+            <div *ngIf="job.skills_required || (job.description?.skills && job.description.skills.length > 0)" class="flex flex-wrap gap-2 mt-2">
+              <ng-container *ngIf="job.description?.skills && job.description.skills.length > 0; else skillsText">
+                <span *ngFor="let skill of job.description.skills"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {{ skill }}
+                </span>
+              </ng-container>
+              <ng-template #skillsText>
+                <span *ngFor="let skill of (job.skills_required || '').split(','); let i = index"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {{ skill.trim() }}
+                </span>
+              </ng-template>
+            </div>
 
-            <h3 class="text-md font-medium text-gray-800 mt-6">Skills</h3>
-            <div class="flex flex-wrap gap-2 mt-2">
-              <span *ngFor="let skill of job.description.skills"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {{ skill }}
-              </span>
+            <h3 *ngIf="job.benefits" class="text-md font-medium text-gray-800 mt-6">Benefits</h3>
+            <div *ngIf="job.benefits" class="text-gray-600">
+              <div *ngIf="job.description?.benefits && job.description.benefits.length > 0; else benefitsText">
+                <ul class="list-disc pl-5">
+                  <li *ngFor="let benefit of job.description.benefits">{{ benefit }}</li>
+                </ul>
+              </div>
+              <ng-template #benefitsText>
+                <p>{{ job.benefits }}</p>
+              </ng-template>
             </div>
           </div>
         </div>
@@ -125,27 +156,35 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 class="text-sm font-medium text-gray-500">Role</h3>
-              <p class="mt-1 text-sm text-gray-900">{{ job.description.meta.role }}</p>
+              <p class="mt-1 text-sm text-gray-900">{{ job.title }}</p>
             </div>
             <div>
-              <h3 class="text-sm font-medium text-gray-500">Industry</h3>
-              <p class="mt-1 text-sm text-gray-900">{{ job.description.meta.industry }}</p>
+              <h3 class="text-sm font-medium text-gray-500">Industry/Category</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ job.category || job.description?.meta?.industry || 'Technology' }}</p>
             </div>
             <div>
-              <h3 class="text-sm font-medium text-gray-500">Department</h3>
-              <p class="mt-1 text-sm text-gray-900">{{ job.description.meta.department }}</p>
+              <h3 class="text-sm font-medium text-gray-500">Company</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ job.company || job.company_name }}</p>
             </div>
             <div>
               <h3 class="text-sm font-medium text-gray-500">Employment Type</h3>
-              <p class="mt-1 text-sm text-gray-900">{{ job.description.meta.employment }}</p>
+              <p class="mt-1 text-sm text-gray-900">{{ job.employment_type || job.description?.meta?.employment || 'Full-time' }}</p>
             </div>
             <div>
-              <h3 class="text-sm font-medium text-gray-500">Education (UG)</h3>
-              <p class="mt-1 text-sm text-gray-900">{{ job.description.meta.education.UG }}</p>
+              <h3 class="text-sm font-medium text-gray-500">Experience Level</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ job.experience_level || job.experience || 'Not specified' }}</p>
             </div>
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Education (PG)</h3>
-              <p class="mt-1 text-sm text-gray-900">{{ job.description.meta.education.PG }}</p>
+            <div *ngIf="job.company_size">
+              <h3 class="text-sm font-medium text-gray-500">Company Size</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ job.company_size }}</p>
+            </div>
+            <div *ngIf="job.remote_allowed !== undefined">
+              <h3 class="text-sm font-medium text-gray-500">Work Type</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ job.remote_allowed ? 'Remote allowed' : 'On-site' }}</p>
+            </div>
+            <div *ngIf="job.salaryRange">
+              <h3 class="text-sm font-medium text-gray-500">Salary</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ job.salaryRange }}</p>
             </div>
           </div>
         </div>

@@ -25,4 +25,15 @@ export class JobCardComponent {
     // Implement save job functionality
     console.log('Job saved:', this.job.id);
   }
+
+  getDescriptionText(description: any): string {
+    if (!description) return '';
+    if (typeof description === 'string') {
+      return description.length > 150 ? description.substring(0, 150) + '...' : description;
+    }
+    if (typeof description === 'object' && description.overview) {
+      return description.overview.length > 150 ? description.overview.substring(0, 150) + '...' : description.overview;
+    }
+    return '';
+  }
 }

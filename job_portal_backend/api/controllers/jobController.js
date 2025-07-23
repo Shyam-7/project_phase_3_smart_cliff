@@ -10,57 +10,48 @@ const transformJobData = (dbJob) => {
     'Not disclosed';
 
   return {
-    id: dbJob.id, // Keep original UUID instead of converting to integer
+    id: dbJob.id,
     title: dbJob.title,
     company: dbJob.company_name,
-    rating: dbJob.company_rating || 4.0,
+    company_name: dbJob.company_name,
+    rating: dbJob.company_rating || null,
+    company_rating: dbJob.company_rating,
     reviews: dbJob.company_reviews_count || 0,
+    company_reviews_count: dbJob.company_reviews_count,
     location: dbJob.location,
     experience: dbJob.experience_level,
-    salary: salaryMax || 0, // For sorting purposes
+    experience_level: dbJob.experience_level,
+    salary: salaryMax || 0,
     salaryRange: salaryDisplay,
     postedDate: dbJob.created_at,
+    created_at: dbJob.created_at,
     summary: dbJob.description ? dbJob.description.substring(0, 150) + '...' : '',
-    companyType: dbJob.company_type || 'Corporate',
+    description: dbJob.description || '',
+    companyType: dbJob.company_type,
+    company_type: dbJob.company_type,
     tags: [
       dbJob.category, 
       dbJob.employment_type,
-      ...(dbJob.skills_required ? dbJob.skills_required.split(',').slice(0, 3) : [])
+      ...(dbJob.skills_required ? dbJob.skills_required.split(',').slice(0, 3).map(s => s.trim()) : [])
     ].filter(Boolean),
     posted: dbJob.created_at,
     logo: null,
     logoText: dbJob.company_name ? dbJob.company_name.charAt(0).toUpperCase() : 'C',
-    color: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Random color
-    description: {
-      overview: dbJob.description || '',
-      responsibilities: dbJob.requirements ? dbJob.requirements.split('.').filter(r => r.trim()) : [],
-      qualifications: dbJob.requirements ? dbJob.requirements.split('.').filter(r => r.trim()) : [],
-      skills: dbJob.skills_required ? dbJob.skills_required.split(',').map(s => s.trim()) : [],
-      benefits: dbJob.benefits ? dbJob.benefits.split(',').map(b => b.trim()) : [],
-      meta: {
-        role: dbJob.title,
-        industry: dbJob.category || 'Technology',
-        department: dbJob.category || 'Engineering',
-        employment: dbJob.employment_type || 'Full-time',
-        category: dbJob.category || 'Software Development',
-        companySize: dbJob.company_size || 'Not specified',
-        remote: dbJob.remote_allowed ? 'Remote allowed' : 'On-site',
-        education: {
-          UG: 'Any Graduate',
-          PG: 'Not required'
-        }
-      }
-    },
+    color: dbJob.company_name ? 
+      `hsl(${dbJob.company_name.charCodeAt(0) * 137.508 % 360}, 70%, 50%)` : 
+      '#6366f1',
     employment_type: dbJob.employment_type,
-    experience_level: dbJob.experience_level,
     category: dbJob.category,
     requirements: dbJob.requirements,
+    skills_required: dbJob.skills_required,
+    benefits: dbJob.benefits,
     views: dbJob.views || 0,
     expires_at: dbJob.expires_at,
     salary_min: dbJob.salary_min,
     salary_max: dbJob.salary_max,
     remote_allowed: dbJob.remote_allowed,
-    company_size: dbJob.company_size
+    company_size: dbJob.company_size,
+    status: dbJob.status
   };
 };
 
@@ -223,9 +214,11 @@ exports.createJob = async (req, res) => {
     
     // Priority: salary_min/salary_max > salary > default
     if (salary_min && salary_max) {
-      finalSalaryMin = parseFloat(salary_min) * 100000; // Convert LPA to INR
-      finalSalaryMax = parseFloat(salary_max) * 100000;
+      // Frontend sends salary in INR, no need to convert
+      finalSalaryMin = parseFloat(salary_min);
+      finalSalaryMax = parseFloat(salary_max);
     } else if (salary && typeof salary === 'number') {
+      // If salary is in LPA, convert to INR
       finalSalaryMin = salary * 100000;
       finalSalaryMax = salary * 100000;
     }
@@ -284,10 +277,10 @@ exports.createJob = async (req, res) => {
       ]
     );
 
-    // Fetch the newly created job
+    // Fetch the newly created job using title and posted_by since UUID is auto-generated
     const [newJob] = await pool.query(
-      'SELECT * FROM jobs WHERE id = (SELECT id FROM jobs WHERE posted_by = ? ORDER BY created_at DESC LIMIT 1)',
-      [userId]
+      'SELECT * FROM jobs WHERE title = ? AND posted_by = ? ORDER BY created_at DESC LIMIT 1',
+      [title, userId]
     );
 
     if (newJob.length === 0) {
@@ -316,9 +309,13 @@ exports.updateJob = async (req, res) => {
     const {
       title,
       company,
+      company_name,
       location,
       experience,
+      experience_level,
       salary,
+      salary_min,
+      salary_max,
       description,
       employment_type,
       category,
@@ -341,13 +338,18 @@ exports.updateJob = async (req, res) => {
       return res.status(404).json({ message: 'Job not found.' });
     }
 
-    // Convert salary to min/max if it's a single value
-    let salary_min = existingJob[0].salary_min;
-    let salary_max = existingJob[0].salary_max;
+    // Handle salary ranges properly
+    let finalSalaryMin = existingJob[0].salary_min;
+    let finalSalaryMax = existingJob[0].salary_max;
     
-    if (salary && typeof salary === 'number') {
-      salary_min = salary * 100000;
-      salary_max = salary * 100000;
+    if (salary_min && salary_max) {
+      // Frontend sends salary in INR, no need to convert
+      finalSalaryMin = parseFloat(salary_min);
+      finalSalaryMax = parseFloat(salary_max);
+    } else if (salary && typeof salary === 'number') {
+      // If salary is in LPA, convert to INR
+      finalSalaryMin = salary * 100000;
+      finalSalaryMax = salary * 100000;
     }
 
     // Convert skills array to comma-separated string
@@ -375,15 +377,15 @@ exports.updateJob = async (req, res) => {
       WHERE id = ?`,
       [
         title || existingJob[0].title,
-        company || existingJob[0].company_name,
+        company_name || company || existingJob[0].company_name,
         location || existingJob[0].location,
         employment_type || existingJob[0].employment_type,
-        experience || existingJob[0].experience_level,
+        experience_level || experience || existingJob[0].experience_level,
         category || existingJob[0].category,
         descriptionText,
         requirementsText,
-        salary_min,
-        salary_max,
+        finalSalaryMin,
+        finalSalaryMax,
         remote_allowed !== undefined ? remote_allowed : existingJob[0].remote_allowed,
         skillsString,
         benefits || existingJob[0].benefits,

@@ -125,7 +125,10 @@ export class JobManagementComponent {
       : this.jobService.addJob(this.selectedJob);
 
     operation.subscribe({
-      next: (savedJob) => {
+      next: (response) => {
+        // Extract the job from the response (backend returns { message: '...', job: {...} })
+        const savedJob = response.job || response;
+        
         if (this.isEditing) {
           this.jobs = this.jobs.map(job => 
             job.id === savedJob.id ? savedJob : job
@@ -191,5 +194,20 @@ export class JobManagementComponent {
     };
     this.tagsInput = '';
     this.isEditing = false;
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return 'N/A';
+    }
   }
 }

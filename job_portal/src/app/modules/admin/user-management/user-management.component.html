@@ -141,14 +141,14 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <span [class]="getStatusClass(user.status)"
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer"
-                (click)="openSuspendDialog(user)">
+                (click)="toggleStatus(user)">
                 {{ user.status }}
               </span>
             </td>
 
             <!-- Join Date Column -->
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ user.joinDate }}
+              {{ formatDate(user.created_at) }}
             </td>
 
             <!-- Applications Column -->
@@ -159,7 +159,7 @@
             <!-- Actions Column -->
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex justify-end space-x-2">
-                <button class="text-blue-600 hover:text-blue-900" title="View">
+                <button (click)="viewUser(user)" class="text-blue-600 hover:text-blue-900" title="View">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -167,13 +167,20 @@
                       d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 </button>
-                <button class="text-green-600 hover:text-green-900" title="Edit">
-                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button (click)="toggleStatus(user)" [class]="user.status === 'Active' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'" 
+                        [title]="user.status === 'Active' ? 'Suspend User' : 'Activate User'">
+                  <!-- Suspend Icon (Lock/Pause) -->
+                  <svg *ngIf="user.status === 'Active'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      d="M18 8V6a6 6 0 00-12 0v2m-2 0h16m-16 0a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2v-8a2 2 0 00-2-2" />
+                  </svg>
+                  <!-- Activate Icon (Play/Power) -->
+                  <svg *ngIf="user.status !== 'Active'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 5v14l11-7z" />
                   </svg>
                 </button>
-                <button class="text-red-600 hover:text-red-900" title="Delete" (click)="deleteUser(user.id)">
+                <button *ngIf="user.role !== 'Admin'" (click)="openDeleteDialog(user)" class="text-red-600 hover:text-red-900" title="Delete">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -213,6 +220,90 @@
           class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">
           Next
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View User Modal -->
+  <div *ngIf="showViewDialog" class="fixed inset-0 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold">User Details</h3>
+          <button (click)="closeViewDialog()" class="text-gray-400 hover:text-gray-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="p-6" *ngIf="selectedUser">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <p class="text-gray-900">{{ selectedUser.name }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <p class="text-gray-900">{{ selectedUser.email }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <span [class]="getRoleClass(selectedUser.role)">{{ selectedUser.role }}</span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <span [class]="getStatusClass(selectedUser.status)">{{ selectedUser.status }}</span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
+            <p class="text-gray-900">{{ formatDate(selectedUser.created_at) }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Applications</label>
+            <p class="text-gray-900">{{ selectedUser.applications || 0 }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+        <button (click)="closeViewDialog()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteDialog" class="fixed inset-0 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-red-600">Confirm Delete</h3>
+      </div>
+      <div class="p-6" *ngIf="userToDelete">
+        <p class="text-gray-700 mb-4">
+          Are you sure you want to delete user <strong>{{ userToDelete.name }}</strong>?
+        </p>
+        <p class="text-sm text-red-600">
+          This action cannot be undone. All user data and applications will be permanently removed.
+        </p>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-4">
+        <button (click)="closeDeleteDialog()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+          Cancel
+        </button>
+        <button (click)="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+          Delete User
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div *ngIf="isLoading" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+      <div class="flex items-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="ml-3 text-gray-700">Loading users...</span>
       </div>
     </div>
   </div>

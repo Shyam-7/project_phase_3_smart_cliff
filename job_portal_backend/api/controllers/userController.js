@@ -185,3 +185,108 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({ message: 'Error fetching user.', error });
   }
 };
+
+// Delete user (Admin only)
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user.id; // Admin user ID from JWT
+    
+    console.log('Deleting user:', id, 'by admin:', adminId);
+
+    // Check if user exists
+    const [existingUser] = await pool.query(
+      'SELECT * FROM users WHERE id = ?',
+      [id]
+    );
+
+    if (existingUser.length === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Prevent admin from deleting themselves
+    if (id === adminId) {
+      return res.status(400).json({ message: 'Admin cannot delete their own account.' });
+    }
+
+    // Prevent deleting other admin users
+    if (existingUser[0].role === 'admin') {
+      return res.status(400).json({ message: 'Cannot delete admin users.' });
+    }
+
+    // Check if user has applications
+    const [applications] = await pool.query(
+      'SELECT COUNT(*) as count FROM applications WHERE user_id = ?',
+      [id]
+    );
+
+    const applicationCount = applications[0].count;
+
+    // Delete related records first (due to foreign key constraints)
+    if (applicationCount > 0) {
+      await pool.query('DELETE FROM applications WHERE user_id = ?', [id]);
+    }
+
+    // Delete job seeker profile if exists
+    await pool.query('DELETE FROM job_seeker_profiles WHERE user_id = ?', [id]);
+
+    // Delete the user
+    await pool.query('DELETE FROM users WHERE id = ?', [id]);
+
+    console.log('User deleted successfully:', id);
+    res.json({ 
+      message: 'User deleted successfully!',
+      deleted: true,
+      applicationCount 
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error while deleting user.', error });
+  }
+};
+
+// Update user status (Admin only)
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const adminId = req.user.id;
+
+    console.log('Updating user status:', id, 'to:', status, 'by admin:', adminId);
+
+    // Check if user exists
+    const [existingUser] = await pool.query(
+      'SELECT * FROM users WHERE id = ?',
+      [id]
+    );
+
+    if (existingUser.length === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Prevent admin from updating their own status
+    if (id === adminId) {
+      return res.status(400).json({ message: 'Admin cannot update their own status.' });
+    }
+
+    // Prevent updating other admin users
+    if (existingUser[0].role === 'admin') {
+      return res.status(400).json({ message: 'Cannot update admin user status.' });
+    }
+
+    // Update user status
+    await pool.query(
+      'UPDATE users SET status = ? WHERE id = ?',
+      [status, id]
+    );
+
+    console.log('User status updated successfully:', id);
+    res.json({ 
+      message: 'User status updated successfully!',
+      status: status
+    });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ message: 'Server error while updating user status.', error });
+  }
+};

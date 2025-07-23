@@ -3,7 +3,9 @@ const {
   getUserProfile, 
   updateUserProfile, 
   getAllUsers, 
-  getUserById 
+  getUserById,
+  deleteUser,
+  updateUserStatus
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -32,5 +34,15 @@ router.get('/', protect, admin, getAllUsers);
 // @desc    Get user by ID (Admin only)
 // @access  Private/Admin
 router.get('/:id', protect, admin, getUserById);
+
+// @route   DELETE /api/users/:id
+// @desc    Delete user (Admin only)
+// @access  Private/Admin
+router.delete('/:id', protect, admin, deleteUser);
+
+// @route   PATCH /api/users/:id/status
+// @desc    Update user status (Admin only)
+// @access  Private/Admin
+router.patch('/:id/status', protect, admin, updateUserStatus);
 
 module.exports = router;

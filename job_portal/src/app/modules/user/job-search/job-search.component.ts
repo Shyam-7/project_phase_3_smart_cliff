@@ -76,22 +76,21 @@ export class JobSearchComponent implements OnInit {
       params.search = this.searchQuery.trim();
     }
     
-    // Add location filter
+    // Add location filter - prioritize search input over filter checkboxes
+    const activeLocationFilters = Object.keys(this.selectedLocations).filter(k => this.selectedLocations[k]);
     if (this.locationQuery.trim()) {
       params.location = this.locationQuery.trim();
+    } else if (activeLocationFilters.length > 0) {
+      params.location = activeLocationFilters[0];
     }
     
-    // Add checkbox filters
+    // Add experience filters
     const activeExpFilters = Object.keys(this.selectedExperience).filter(k => this.selectedExperience[k]);
     if (activeExpFilters.length > 0) {
       params.experience = activeExpFilters[0]; // For simplicity, use first selected
     }
     
-    const activeLocationFilters = Object.keys(this.selectedLocations).filter(k => this.selectedLocations[k]);
-    if (activeLocationFilters.length > 0) {
-      params.location = activeLocationFilters[0];
-    }
-    
+    // Add salary filters
     const activeSalaryFilters = Object.keys(this.selectedSalaries).filter(k => this.selectedSalaries[k]);
     if (activeSalaryFilters.length > 0) {
       // Parse salary range (e.g., "3-6 LPA" -> min: 3, max: 6)
@@ -100,9 +99,14 @@ export class JobSearchComponent implements OnInit {
         const [min, max] = salaryRange.split('-').map(s => parseInt(s.trim()));
         params.salary_min = min;
         params.salary_max = max;
+      } else if (salaryRange.includes('+')) {
+        // Handle "25+ LPA" case
+        const min = parseInt(salaryRange.replace('+', '').trim());
+        params.salary_min = min;
       }
     }
     
+    // Add company type filters
     const activeCompanyTypeFilters = Object.keys(this.selectedCompanyTypes).filter(k => this.selectedCompanyTypes[k]);
     if (activeCompanyTypeFilters.length > 0) {
       params.company_type = activeCompanyTypeFilters[0];
@@ -112,8 +116,11 @@ export class JobSearchComponent implements OnInit {
     params.sort_by = this.getSortField();
     params.sort_order = this.getSortOrder();
 
+    console.log('Sending filter params:', params);
+
     this.jobService.getJobsWithFilters(params).subscribe({
       next: (jobs) => {
+        console.log('Received jobs data:', jobs);
         this.jobs = jobs;
         this.originalOrderJobs = [...jobs];
         this.filteredJobs = [...jobs];
