@@ -80,13 +80,13 @@
         <!-- Job Information -->
         <div class="job-info">
           <div class="company-logo" [style.background-color]="item.job.color">
-            {{ getCompanyInitials(item.job.company || item.job.company_name || '') }}
+            {{ getCompanyInitials(item.job.company) }}
           </div>
           <div class="job-details">
             <h3 class="job-title">{{ item.job.title }}</h3>
-            <p class="company-name">{{ item.job.company || item.job.company_name }}</p>
+            <p class="company-name">{{ item.job.company }}</p>
             <p class="job-location">{{ item.job.location }}</p>
-            <p class="job-type">{{ item.job.experience || item.job.experience_level }} • {{ item.job.salaryRange || 'Salary not disclosed' }}</p>
+            <p class="job-type">{{ item.job.experience }} • {{ item.job.salaryRange || 'Salary not disclosed' }}</p>
           </div>
         </div>
         

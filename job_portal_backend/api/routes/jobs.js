@@ -1,10 +1,7 @@
 const express = require('express');
 const { 
   getAllJobs, 
-  getJobById, 
-  createJob, 
-  updateJob, 
-  deleteJob 
+  getJobById
 } = require('../controllers/jobController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -19,19 +16,20 @@ router.get('/', getAllJobs);
 // @access  Public
 router.get('/:id', getJobById);
 
+// TODO: Implement these endpoints when needed
 // @route   POST /api/jobs
 // @desc    Create a new job
 // @access  Private/Admin
-router.post('/', protect, admin, createJob);
+// router.post('/', protect, admin, createJob);
 
 // @route   PUT /api/jobs/:id
 // @desc    Update an existing job
 // @access  Private/Admin
-router.put('/:id', protect, admin, updateJob);
+// router.put('/:id', protect, admin, updateJob);
 
 // @route   DELETE /api/jobs/:id
 // @desc    Delete a job
 // @access  Private/Admin
-router.delete('/:id', protect, admin, deleteJob);
+// router.delete('/:id', protect, admin, deleteJob);
 
 module.exports = router;

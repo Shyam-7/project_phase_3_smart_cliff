@@ -49,6 +49,18 @@ export class UserService {
     });
   }
 
+  updateUserStatus(userId: string, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${userId}/status`, { status }, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  deleteUser(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   // Legacy method for backward compatibility
   getProfile(): Observable<any> {
     return this.getUserProfile();

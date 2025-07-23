@@ -1,30 +1,72 @@
-import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
+import { AnalyticsService, AnalyticsData } from '../../../core/services/analytics.service';
 
 @Component({
   selector: 'app-analytics',
+  standalone: true,
+  imports: [CommonModule, DecimalPipe],
   templateUrl: './analytics.component.html',
   styleUrls: ['./analytics.component.css']
 })
-export class AnalyticsComponent implements AfterViewInit {
+export class AnalyticsComponent implements OnInit, AfterViewInit {
   @ViewChild('statusChart') statusChartRef!: ElementRef;
   @ViewChild('categoriesChart') categoriesChartRef!: ElementRef;
   @ViewChild('monthlyTrendsChart') monthlyTrendsChartRef!: ElementRef;
 
+  analyticsData: AnalyticsData | null = null;
+  loading = true;
+  error: string | null = null;
+
+  constructor(private analyticsService: AnalyticsService) {}
+
+  ngOnInit() {
+    this.loadAnalyticsData();
+  }
+
   ngAfterViewInit() {
     Chart.register(...registerables);
-    this.createStatusChart();
-    this.createCategoriesChart();
-    this.createMonthlyTrendsChart();
+    // Charts will be created after data is loaded
+  }
+
+  public loadAnalyticsData() {
+    this.loading = true;
+    this.error = null;
+    
+    this.analyticsService.getAnalyticsData().subscribe({
+      next: (data) => {
+        this.analyticsData = data;
+        this.loading = false;
+        
+        // Create charts after data is loaded
+        setTimeout(() => {
+          this.createStatusChart();
+          this.createCategoriesChart();
+          this.createMonthlyTrendsChart();
+        }, 100);
+      },
+      error: (error) => {
+        console.error('Error loading analytics data:', error);
+        this.error = 'Failed to load analytics data';
+        this.loading = false;
+      }
+    });
   }
 
   private createStatusChart() {
+    if (!this.analyticsData || !this.statusChartRef) return;
+
+    const statusData = this.analyticsData.applicationStatuses;
+    const labels = statusData.map(item => item.status);
+    const data = statusData.map(item => item.percentage);
+
     new Chart(this.statusChartRef.nativeElement, {
       type: 'doughnut',
       data: {
-        labels: ['Under review', 'Approved', 'Interview Scheduled', 'Rejected'],
+        labels: labels,
         datasets: [{
-          data: [45.2, 32.1, 15.7, 7.0],
+          data: data,
           backgroundColor: [
             '#3B82F6', // blue-500
             '#10B981', // green-500
@@ -36,7 +78,7 @@ export class AnalyticsComponent implements AfterViewInit {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false, // <-- FIX: Prevents chart from overflowing its container
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             position: 'right',
@@ -54,13 +96,19 @@ export class AnalyticsComponent implements AfterViewInit {
   }
 
   private createCategoriesChart() {
+    if (!this.analyticsData || !this.categoriesChartRef) return;
+
+    const categoriesData = this.analyticsData.jobCategories;
+    const labels = categoriesData.map(item => item.name);
+    const data = categoriesData.map(item => item.count);
+
     new Chart(this.categoriesChartRef.nativeElement, {
       type: 'bar',
       data: {
-        labels: ['Technology', 'Healthcare', 'Finance', 'Marketing', 'Design'],
+        labels: labels,
         datasets: [{
           label: 'Job Count',
-          data: [342, 189, 156, 127, 89],
+          data: data,
           backgroundColor: [
             '#3B82F6', // blue-500
             '#10B981', // green-500
@@ -73,7 +121,7 @@ export class AnalyticsComponent implements AfterViewInit {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false, // <-- BEST PRACTICE: Added for consistency
+        maintainAspectRatio: false,
         scales: {
           y: {
             beginAtZero: true
@@ -89,14 +137,18 @@ export class AnalyticsComponent implements AfterViewInit {
   }
 
   private createMonthlyTrendsChart() {
+    if (!this.analyticsData || !this.monthlyTrendsChartRef) return;
+
+    const trendsData = this.analyticsData.monthlyTrends;
+
     new Chart(this.monthlyTrendsChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        labels: trendsData.labels,
         datasets: [
           {
             label: 'Total Users',
-            data: [1200, 1500, 1800, 2100, 2400, 2700, 2841],
+            data: trendsData.users,
             borderColor: '#3B82F6',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             tension: 0.3,
@@ -104,7 +156,7 @@ export class AnalyticsComponent implements AfterViewInit {
           },
           {
             label: 'Active Jobs',
-            data: [80, 90, 95, 100, 110, 120, 126],
+            data: trendsData.jobs,
             borderColor: '#10B981',
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0.3,
@@ -112,7 +164,7 @@ export class AnalyticsComponent implements AfterViewInit {
           },
           {
             label: 'Applications',
-            data: [200, 250, 280, 300, 330, 360, 385],
+            data: trendsData.applications,
             borderColor: '#F59E0B',
             backgroundColor: 'rgba(245, 158, 11, 0.1)',
             tension: 0.3,
@@ -122,7 +174,7 @@ export class AnalyticsComponent implements AfterViewInit {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false, // <-- BEST PRACTICE: Added for consistency
+        maintainAspectRatio: false,
         interaction: {
           mode: 'index',
           intersect: false,
