@@ -41,14 +41,33 @@ export class JobManagementComponent {
     }
     const query = this.searchQuery.toLowerCase();
     this.filteredJobs = this.jobs.filter(job => 
-      job.title.toLowerCase().includes(query) || 
-      job.company.toLowerCase().includes(query) ||
+      job.title?.toLowerCase().includes(query) || 
+      (job.company || job.company_name || '')?.toLowerCase().includes(query) ||
       (job.tags && job.tags.some(tag => tag.toLowerCase().includes(query))))
   }
 
   editJob(job: Job): void {
     this.selectedJob = { ...job };
+    
+    // Ensure backward compatibility for company field
+    if (job.company && !this.selectedJob.company_name) {
+      this.selectedJob.company_name = job.company;
+    }
+    if (job.company_name && !this.selectedJob.company) {
+      this.selectedJob.company = job.company_name;
+    }
+    
+    // Handle tags for display
     this.tagsInput = this.selectedJob.tags?.join(', ') || '';
+    
+    // Convert date format if needed
+    if (this.selectedJob.expires_at) {
+      const date = new Date(this.selectedJob.expires_at);
+      if (!isNaN(date.getTime())) {
+        this.selectedJob.expires_at = date.toISOString().split('T')[0];
+      }
+    }
+    
     this.isEditing = true;
   }
 
@@ -71,19 +90,35 @@ export class JobManagementComponent {
     if (!this.selectedJob) return;
     
     // Basic validation
-    if (!this.selectedJob.title || !this.selectedJob.company) {
-      alert('Title and Company are required fields');
+    if (!this.selectedJob.title || (!this.selectedJob.company_name && !this.selectedJob.company)) {
+      alert('Title and Company Name are required fields');
       return;
     }
 
     if (this.isSaving) return;
     this.isSaving = true;
 
-    // Convert tags input back to array
-    this.selectedJob.tags = this.tagsInput
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag);
+    // Ensure company_name is set for backend compatibility
+    if (!this.selectedJob.company_name && this.selectedJob.company) {
+      this.selectedJob.company_name = this.selectedJob.company;
+    }
+
+    // Convert tags input back to array for backward compatibility
+    if (this.tagsInput) {
+      this.selectedJob.tags = this.tagsInput
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag);
+    }
+
+    // Ensure salary ranges are properly set
+    if (this.selectedJob.salary_min && this.selectedJob.salary_max) {
+      if (this.selectedJob.salary_min > this.selectedJob.salary_max) {
+        alert('Minimum salary cannot be greater than maximum salary');
+        this.isSaving = false;
+        return;
+      }
+    }
 
     const operation = this.isEditing 
       ? this.jobService.updateJob(this.selectedJob)
@@ -120,37 +155,39 @@ export class JobManagementComponent {
     this.selectedJob = {
       id: '', // Will be assigned by server
       title: '',
-      company: '',
+      company_name: '',
+      company: '', // For backward compatibility
+      location: '',
+      employment_type: 'Full-time',
+      experience_level: '',
+      category: '',
+      status: 'active',
+      description: '',
+      requirements: '',
+      skills_required: '',
+      benefits: '',
+      company_type: 'Corporate',
+      company_size: '',
+      company_rating: 0,
+      company_reviews_count: 0,
+      salary_min: 0,
+      salary_max: 0,
+      salary_currency: 'INR',
+      remote_allowed: false,
+      expires_at: '',
+      summary: '',
+      // Legacy fields for backward compatibility
       rating: 0,
       reviews: 0,
-      location: '',
-      experience: '',
       salary: 0,
       postedDate: new Date().toISOString(),
-      summary: '',
-      companyType: '',
+      companyType: 'Corporate',
       tags: [],
       posted: 'Just now',
       logo: null,
       logoText: '',
       color: 'bg-gray-500',
-      description: {
-        overview: '',
-        responsibilities: [],
-        qualifications: [],
-        meta: {
-          role: '',
-          industry: '',
-          department: '',
-          employment: '',
-          category: '',
-          education: {
-            UG: '',
-            PG: ''
-          }
-        },
-        skills: []
-      }
+      views: 0
     };
     this.tagsInput = '';
     this.isEditing = false;

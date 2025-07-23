@@ -140,13 +140,10 @@ exports.updateUserProfile = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT u.id, u.name, u.email, u.role, u.status, u.created_at, u.address,
-             p.phone_number, p.bio, p.skills,
-             COUNT(a.id) as application_count
+      SELECT u.id, u.name, u.email, u.role, u.status, u.created_at,
+             p.phone_number, p.bio, p.skills
       FROM users u
       LEFT JOIN job_seeker_profiles p ON u.id = p.user_id
-      LEFT JOIN applications a ON u.id = a.user_id AND a.status != 'Withdrawn'
-      GROUP BY u.id, u.name, u.email, u.role, u.status, u.created_at, u.address, p.phone_number, p.bio, p.skills
       ORDER BY u.created_at DESC
     `);
     
@@ -186,74 +183,5 @@ exports.getUserById = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Error fetching user.', error });
-  }
-};
-
-// Update user status (Admin only)
-exports.updateUserStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-    
-    // Validate status
-    if (!['Active', 'Suspended'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status. Must be Active or Suspended.' });
-    }
-    
-    // Check if user exists
-    const [userExists] = await pool.query('SELECT id FROM users WHERE id = ?', [id]);
-    if (userExists.length === 0) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-    
-    // Update user status
-    await pool.query('UPDATE users SET status = ? WHERE id = ?', [status, id]);
-    
-    res.json({ message: `User status updated to ${status} successfully.` });
-  } catch (error) {
-    console.error('Error updating user status:', error);
-    res.status(500).json({ message: 'Error updating user status.', error });
-  }
-};
-
-// Delete user (Admin only)
-exports.deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Check if user exists
-    const [userExists] = await pool.query('SELECT id, role FROM users WHERE id = ?', [id]);
-    if (userExists.length === 0) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-    
-    // Prevent deletion of admin users
-    if (userExists[0].role === 'admin') {
-      return res.status(403).json({ message: 'Cannot delete admin users.' });
-    }
-    
-    // Start transaction to delete user and related data
-    await pool.query('START TRANSACTION');
-    
-    try {
-      // Delete related profile data
-      await pool.query('DELETE FROM job_seeker_profiles WHERE user_id = ?', [id]);
-      
-      // Update applications to mark as deleted user (optional - maintain data integrity)
-      await pool.query('UPDATE applications SET status = ? WHERE user_id = ?', ['User Deleted', id]);
-      
-      // Delete the user
-      await pool.query('DELETE FROM users WHERE id = ?', [id]);
-      
-      await pool.query('COMMIT');
-      
-      res.json({ message: 'User deleted successfully.' });
-    } catch (error) {
-      await pool.query('ROLLBACK');
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ message: 'Error deleting user.', error });
   }
 };

@@ -39,7 +39,7 @@ export const routes: Routes = [
       { path: 'communication', component: CommunicationComponent },
       { path: 'content-management', component: ContentManagementComponent },
       { path: 'user-management', component: UserManagementComponent },
-      { path: 'job-management', component: JobManagementComponent }
+      {path: 'job-management', component: JobManagementComponent }
     ]
   },
   {
@@ -58,7 +58,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'user-dashboard', pathMatch: 'full' } // Fixed redirect
     ]
   },
-  
   {
     path: 'auth',
     children: [
