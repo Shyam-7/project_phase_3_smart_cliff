@@ -304,40 +304,4 @@ export class AppliedJobsComponent implements OnInit {
     this.error = message;
     this.isLoading = false;
   }
-
-  getStatusClass(status: string): string {
-    const normalizedStatus = status.toLowerCase().replace(' ', '-');
-    switch (normalizedStatus) {
-      case 'applied':
-        return 'status-applied';
-      case 'under-review':
-        return 'status-under-review';
-      case 'interview':
-        return 'status-interview';
-      case 'accepted':
-        return 'status-accepted';
-      case 'rejected':
-        return 'status-rejected';
-      default:
-        return 'status-default';
-    }
-  }
-
-  getStatusIcon(status: string): string {
-    const normalizedStatus = status.toLowerCase().replace(' ', '-');
-    switch (normalizedStatus) {
-      case 'applied':
-        return 'fas fa-paper-plane';
-      case 'under-review':
-        return 'fas fa-clock';
-      case 'interview':
-        return 'fas fa-user-tie';
-      case 'accepted':
-        return 'fas fa-check-circle';
-      case 'rejected':
-        return 'fas fa-times-circle';
-      default:
-        return 'fas fa-question-circle';
-    }
-  }
 }

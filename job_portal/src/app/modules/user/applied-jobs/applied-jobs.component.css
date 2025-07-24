@@ -51,20 +51,22 @@
 
 .browse-jobs-button, .retry-btn {
   display: inline-block;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #3b82f6;
   color: white;
   padding: 12px 24px;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
   margin-top: 1rem;
-  border: none;
+  border: 2px solid #3b82f6;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s ease;
 }
 
 .browse-jobs-button:hover, .retry-btn:hover {
-  transform: translateY(-2px);
+  background-color: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
 }
 
 /* Stats Summary */
@@ -228,66 +230,96 @@
   color: white;
 }
 
-/* Status-specific select colors */
-.status-select-applied {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-color: #2563eb;
+/* Status Dropdown Styles */
+.status-dropdown {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 150px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
 }
 
-.status-select-under-review {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  border-color: #f59e0b;
-}
-
-.status-select-interview {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  border-color: #8b5cf6;
-}
-
-.status-select-accepted {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-color: #10b981;
-}
-
-.status-select-rejected {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border-color: #ef4444;
-}
-
-/* Option colors */
-.status-option-applied {
-  background-color: #dbeafe !important;
-  color: #1e40af !important;
-}
-
-.status-option-review {
-  background-color: #fef3c7 !important;
-  color: #92400e !important;
-}
-
-.status-option-interview {
-  background-color: #e0e7ff !important;
-  color: #5b21b6 !important;
-}
-
-.status-option-accepted {
-  background-color: #d1fae5 !important;
-  color: #065f46 !important;
-}
-
-.status-option-rejected {
-  background-color: #fee2e2 !important;
-  color: #dc2626 !important;
-}
-
-.status-select:focus {
+.status-dropdown:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.status-select:hover {
+.status-dropdown:hover {
   border-color: #9ca3af;
+  background-color: #f9fafb;
+}
+
+/* Professional Action Button Styles */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn i {
+  font-size: 0.875rem;
+}
+
+/* Icon-only buttons */
+.icon-btn {
+  padding: 0.6rem;
+  min-width: 40px;
+  justify-content: center;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+
+.icon-btn:hover {
+  background-color: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+/* Specific button styles with solid professional colors */
+.details-btn {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.details-btn:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.withdraw-btn {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.withdraw-btn:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
 }
 
 .status-badge {
@@ -303,41 +335,13 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Professional Status Badge Styles */
-.status-applied {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-}
 
-.status-under-review {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.status-interview {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
-}
-
-.status-accepted {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.status-rejected {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-}
-
-.status-default {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-  color: white;
-}
 
 /* Enhanced Status Section */
 .status-section {
   background: #f8fafc;
-  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
 }
@@ -347,6 +351,15 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.75rem;
+}
+
+.status-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .status-label {
@@ -434,56 +447,7 @@
   font-size: 0.875rem;
 }
 
-/* Specific button styles with professional colors */
-.view-job-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: 1px solid transparent;
-}
 
-.view-job-btn:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-}
-
-.view-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: 1px solid transparent;
-}
-
-.view-btn:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-}
-
-.details-btn {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: white;
-  border: 1px solid transparent;
-}
-
-.details-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-}
-
-.edit-btn {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  color: white;
-  border: 1px solid transparent;
-}
-
-.edit-btn:hover {
-  background: linear-gradient(135deg, #f472b6 0%, #fbbf24 100%);
-}
-
-.withdraw-btn {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
-  color: white;
-  border: 1px solid transparent;
-}
-
-.withdraw-btn:hover {
-  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-}
 
 /* Modal Styles */
 .modal-overlay {
@@ -675,15 +639,6 @@
 .application-type.quick-apply {
   background-color: #dcfce7;
   color: #166534;
-}
-
-.details-btn {
-  background-color: #6366f1;
-  color: white;
-}
-
-.details-btn:hover {
-  background-color: #4f46e5;
 }
 
 /* Application Details Modal */

@@ -98,10 +98,16 @@
                 <i class="fas fa-info-circle"></i>
                 Status:
               </label>
-              <div class="status-badge" [ngClass]="getStatusClass(item.application.status)">
-                <i [class]="getStatusIcon(item.application.status)"></i>
-                {{ item.application.status }}
-              </div>
+              <select 
+                [value]="item.application.status" 
+                (change)="updateApplicationStatus(item.application, $event)"
+                class="status-dropdown">
+                <option value="Applied">Applied</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Interview">Interview</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+              </select>
             </div>
             <div class="application-metadata">
               <span class="applied-date">
@@ -121,10 +127,9 @@
           <div class="actions">
             <button 
               (click)="viewJobDetails(item.application.jobId)" 
-              class="action-btn view-job-btn"
+              class="action-btn icon-btn"
               title="View job posting">
               <i class="fas fa-external-link-alt"></i>
-              View Job
             </button>
             
             <button 
@@ -139,10 +144,9 @@
             <button 
               *ngIf="canEdit(item.application.status)"
               (click)="editApplication(item.application)" 
-              class="action-btn edit-btn"
+              class="action-btn icon-btn"
               title="Edit application details">
               <i class="fas fa-edit"></i>
-              Edit Details
             </button>
             
             <button 
