@@ -168,9 +168,13 @@ exports.getJobById = async (req, res) => {
 // Create a new job (Admin only)
 exports.createJob = async (req, res) => {
   try {
-    const userId = req.user.id; // Admin user ID from JWT
+    console.log('🔥 === JOB CREATION REQUEST START ===');
+    console.log('🔐 User from JWT:', req.user);
+    console.log('📝 Request body received:', JSON.stringify(req.body, null, 2));
+    console.log('📋 Request headers:', req.headers);
     
-    console.log('Creating job with data:', JSON.stringify(req.body, null, 2));
+    const userId = req.user.id; // Admin user ID from JWT
+    console.log('👤 Using userId:', userId);
     
     const {
       title,
@@ -200,11 +204,23 @@ exports.createJob = async (req, res) => {
 
     // Handle company name (accept both company and company_name)
     const companyName = company_name || company;
+    console.log('🏢 Company name resolved to:', companyName);
 
     // Validation
+    console.log('✅ Validating required fields...');
+    console.log('📌 Title:', title);
+    console.log('📌 Company:', companyName);
+    console.log('📌 Location:', location);
+    
     if (!title || !companyName || !location) {
+      const missingFields = [];
+      if (!title) missingFields.push('title');
+      if (!companyName) missingFields.push('company name');
+      if (!location) missingFields.push('location');
+      
       return res.status(400).json({ 
-        message: 'Title, company, and location are required fields.' 
+        message: `The following required fields are missing: ${missingFields.join(', ')}.`,
+        missingFields
       });
     }
 
@@ -246,6 +262,34 @@ exports.createJob = async (req, res) => {
     const summaryText = summary || 
       (typeof description === 'object' ? description.summary : '') || '';
 
+    // Handle expires_at - convert empty string to NULL
+    const expiresAt = expires_at && expires_at.trim() !== '' ? expires_at : null;
+    console.log('📅 Expires at processed:', expiresAt);
+
+    console.log('💾 About to insert job into database...');
+    console.log('📊 Final data for insertion:', {
+      title,
+      companyName,
+      location,
+      employment_type,
+      experienceLevel,
+      category,
+      descriptionText: descriptionText.substring(0, 100) + '...',
+      requirementsText: requirementsText.substring(0, 100) + '...',
+      userId,
+      finalSalaryMin,
+      finalSalaryMax,
+      remote_allowed,
+      skillsString,
+      benefits,
+      company_size,
+      company_type,
+      expires_at,
+      status: status || 'active',
+      company_rating: company_rating || null,
+      company_reviews_count: company_reviews_count || 0
+    });
+
     const [result] = await pool.query(
       `INSERT INTO jobs (
         title, company_name, location, employment_type, experience_level, 
@@ -270,12 +314,15 @@ exports.createJob = async (req, res) => {
         benefits,
         company_size,
         company_type,
-        expires_at,
+        expiresAt,
         status || 'active',
         company_rating || null,
         company_reviews_count || 0
       ]
     );
+
+    console.log('✅ Job insertion successful, result:', result);
+    console.log('🔍 Fetching newly created job...');
 
     // Fetch the newly created job using title and posted_by since UUID is auto-generated
     const [newJob] = await pool.query(
@@ -287,14 +334,18 @@ exports.createJob = async (req, res) => {
       throw new Error('Failed to retrieve newly created job');
     }
 
-    console.log('Job created successfully:', newJob[0].id);
+    console.log('🎉 Job created successfully:', newJob[0].id);
+    console.log('🔥 === JOB CREATION REQUEST END ===');
     res.status(201).json({
       message: 'Job created successfully!',
       job: transformJobData(newJob[0])
     });
   } catch (error) {
-    console.error('Error creating job:', error);
-    res.status(500).json({ message: 'Server error while creating job.', error });
+    console.error('💥 === JOB CREATION ERROR ===');
+    console.error('❌ Error details:', error);
+    console.error('📍 Error stack:', error.stack);
+    console.error('💥 === END ERROR ===');
+    res.status(500).json({ message: 'Server error while creating job.', error: error.message });
   }
 };
 
@@ -367,6 +418,9 @@ exports.updateJob = async (req, res) => {
       ? description.responsibilities.join('. ') 
       : existingJob[0].requirements;
 
+    // Handle expires_at properly - convert empty string to NULL or keep existing value
+    const finalExpiresAt = expires_at && expires_at.trim() !== '' ? expires_at : existingJob[0].expires_at;
+
     await pool.query(
       `UPDATE jobs SET 
         title = ?, company_name = ?, location = ?, employment_type = ?, 
@@ -391,7 +445,7 @@ exports.updateJob = async (req, res) => {
         benefits || existingJob[0].benefits,
         company_size || existingJob[0].company_size,
         company_type || existingJob[0].company_type,
-        expires_at || existingJob[0].expires_at,
+        finalExpiresAt,
         status,
         jobId
       ]

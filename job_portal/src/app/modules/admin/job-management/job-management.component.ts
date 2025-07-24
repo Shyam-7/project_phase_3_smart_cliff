@@ -90,8 +90,8 @@ export class JobManagementComponent {
     if (!this.selectedJob) return;
     
     // Basic validation
-    if (!this.selectedJob.title || (!this.selectedJob.company_name && !this.selectedJob.company)) {
-      alert('Title and Company Name are required fields');
+    if (!this.selectedJob.title || (!this.selectedJob.company_name && !this.selectedJob.company) || !this.selectedJob.location) {
+      alert('Title, Company Name, and Location are required fields');
       return;
     }
 

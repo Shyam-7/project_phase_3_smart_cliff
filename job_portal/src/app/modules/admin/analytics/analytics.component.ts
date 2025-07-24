@@ -1,50 +1,136 @@
-import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
+import { AnalyticsService, AnalyticsData, JobCategoryData, ApplicationStatusData, MonthlyTrend, ConversionData, TopJob } from '../../../core/services/analytics.service';
 
 @Component({
   selector: 'app-analytics',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './analytics.component.html',
   styleUrls: ['./analytics.component.css']
 })
-export class AnalyticsComponent implements AfterViewInit {
+export class AnalyticsComponent implements OnInit, AfterViewInit {
   @ViewChild('statusChart') statusChartRef!: ElementRef;
   @ViewChild('categoriesChart') categoriesChartRef!: ElementRef;
   @ViewChild('monthlyTrendsChart') monthlyTrendsChartRef!: ElementRef;
 
-  ngAfterViewInit() {
-    Chart.register(...registerables);
-    this.createStatusChart();
-    this.createCategoriesChart();
-    this.createMonthlyTrendsChart();
+  // Data properties
+  analyticsData: AnalyticsData | null = null;
+  jobCategories: JobCategoryData[] = [];
+  applicationStatus: ApplicationStatusData[] = [];
+  monthlyTrends: MonthlyTrend[] = [];
+  conversionData: ConversionData | null = null;
+  topJobs: TopJob[] = [];
+  isLoading = true;
+  error: string | null = null;
+
+  // Chart instances
+  private statusChart: Chart | null = null;
+  private categoriesChart: Chart | null = null;
+  private monthlyTrendsChart: Chart | null = null;
+
+  constructor(private analyticsService: AnalyticsService) {}
+
+  ngOnInit(): void {
+    this.loadAnalyticsData();
   }
 
-  private createStatusChart() {
-    new Chart(this.statusChartRef.nativeElement, {
+  ngAfterViewInit(): void {
+    Chart.register(...registerables);
+    // Charts will be created after data is loaded
+  }
+
+  private loadAnalyticsData(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    // Load all analytics data
+    Promise.all([
+      this.analyticsService.getAnalyticsOverview().toPromise(),
+      this.analyticsService.getJobCategoriesData().toPromise(),
+      this.analyticsService.getApplicationStatusData().toPromise(),
+      this.analyticsService.getMonthlyTrends().toPromise(),
+      this.analyticsService.getConversionData().toPromise(),
+      this.analyticsService.getTopJobs(5).toPromise()
+    ]).then(([
+      analytics,
+      categories,
+      status,
+      trends,
+      conversion,
+      jobs
+    ]) => {
+      this.analyticsData = analytics!;
+      this.jobCategories = categories!;
+      this.applicationStatus = status!;
+      this.monthlyTrends = trends!;
+      this.conversionData = conversion!;
+      this.topJobs = jobs!;
+      this.isLoading = false;
+
+      // Create charts after data is loaded
+      setTimeout(() => {
+        this.createAllCharts();
+      }, 100);
+
+    }).catch(error => {
+      console.error('Error loading analytics data:', error);
+      this.error = 'Failed to load analytics data from database. Please check your connection and try again.';
+      this.isLoading = false;
+    });
+  }
+
+  private createAllCharts(): void {
+    if (this.statusChartRef && this.applicationStatus.length > 0) {
+      this.createStatusChart();
+    }
+    if (this.categoriesChartRef && this.jobCategories.length > 0) {
+      this.createCategoriesChart();
+    }
+    if (this.monthlyTrendsChartRef && this.monthlyTrends.length > 0) {
+      this.createMonthlyTrendsChart();
+    }
+  }
+
+  private createStatusChart(): void {
+    if (this.statusChart) {
+      this.statusChart.destroy();
+    }
+
+    const labels = this.applicationStatus.map(item => item.status);
+    const data = this.applicationStatus.map(item => item.percentage);
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+    this.statusChart = new Chart(this.statusChartRef.nativeElement, {
       type: 'doughnut',
       data: {
-        labels: ['Under review', 'Approved', 'Interview Scheduled', 'Rejected'],
+        labels: labels,
         datasets: [{
-          data: [45.2, 32.1, 15.7, 7.0],
-          backgroundColor: [
-            '#3B82F6', // blue-500
-            '#10B981', // green-500
-            '#F59E0B', // yellow-500
-            '#EF4444'  // red-500
-          ],
-          borderWidth: 1
+          data: data,
+          backgroundColor: colors.slice(0, labels.length),
+          borderWidth: 2,
+          borderColor: '#ffffff'
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false, // <-- FIX: Prevents chart from overflowing its container
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             position: 'right',
+            labels: {
+              usePointStyle: true,
+              padding: 20
+            }
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                return `${context.label}: ${context.raw}%`;
+              label: (context) => {
+                const label = context.label || '';
+                const value = context.raw as number;
+                const count = this.applicationStatus[context.dataIndex]?.count || 0;
+                return `${label}: ${value}% (${count} applications)`;
               }
             }
           }
@@ -53,86 +139,174 @@ export class AnalyticsComponent implements AfterViewInit {
     });
   }
 
-  private createCategoriesChart() {
-    new Chart(this.categoriesChartRef.nativeElement, {
+  private createCategoriesChart(): void {
+    if (this.categoriesChart) {
+      this.categoriesChart.destroy();
+    }
+
+    const labels = this.jobCategories.map(item => item.category);
+    const data = this.jobCategories.map(item => item.count);
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444'];
+
+    this.categoriesChart = new Chart(this.categoriesChartRef.nativeElement, {
       type: 'bar',
       data: {
-        labels: ['Technology', 'Healthcare', 'Finance', 'Marketing', 'Design'],
+        labels: labels,
         datasets: [{
           label: 'Job Count',
-          data: [342, 189, 156, 127, 89],
-          backgroundColor: [
-            '#3B82F6', // blue-500
-            '#10B981', // green-500
-            '#F59E0B', // yellow-500
-            '#8B5CF6', // purple-500
-            '#EF4444'  // red-500
-          ],
-          borderWidth: 1
+          data: data,
+          backgroundColor: colors.slice(0, labels.length),
+          borderWidth: 1,
+          borderRadius: 4
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false, // <-- BEST PRACTICE: Added for consistency
+        maintainAspectRatio: false,
         scales: {
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            grid: {
+              color: '#f3f4f6'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
           }
         },
         plugins: {
           legend: {
             display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const value = context.raw as number;
+                const percentage = this.jobCategories[context.dataIndex]?.percentage || 0;
+                return `${context.label}: ${value} jobs (${percentage}%)`;
+              }
+            }
           }
         }
       }
     });
   }
 
-  private createMonthlyTrendsChart() {
-    new Chart(this.monthlyTrendsChartRef.nativeElement, {
+  private createMonthlyTrendsChart(): void {
+    if (this.monthlyTrendsChart) {
+      this.monthlyTrendsChart.destroy();
+    }
+
+    const labels = this.monthlyTrends.map(item => item.month);
+    const usersData = this.monthlyTrends.map(item => item.users);
+    const jobsData = this.monthlyTrends.map(item => item.jobs);
+    const applicationsData = this.monthlyTrends.map(item => item.applications);
+
+    this.monthlyTrendsChart = new Chart(this.monthlyTrendsChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        labels: labels,
         datasets: [
           {
             label: 'Total Users',
-            data: [1200, 1500, 1800, 2100, 2400, 2700, 2841],
+            data: usersData,
             borderColor: '#3B82F6',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             tension: 0.3,
-            fill: true
+            fill: true,
+            pointBackgroundColor: '#3B82F6',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2
           },
           {
             label: 'Active Jobs',
-            data: [80, 90, 95, 100, 110, 120, 126],
+            data: jobsData,
             borderColor: '#10B981',
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0.3,
-            fill: true
+            fill: true,
+            pointBackgroundColor: '#10B981',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2
           },
           {
             label: 'Applications',
-            data: [200, 250, 280, 300, 330, 360, 385],
+            data: applicationsData,
             borderColor: '#F59E0B',
             backgroundColor: 'rgba(245, 158, 11, 0.1)',
             tension: 0.3,
-            fill: true
+            fill: true,
+            pointBackgroundColor: '#F59E0B',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2
           }
         ]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false, // <-- BEST PRACTICE: Added for consistency
+        maintainAspectRatio: false,
         interaction: {
           mode: 'index',
           intersect: false,
         },
         scales: {
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            grid: {
+              color: '#f3f4f6'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20
+            }
           }
         }
       }
     });
+  }
+
+  refreshData(): void {
+    console.log('Refreshing analytics data...');
+    this.loadAnalyticsData();
+  }
+
+  exportReport(type: 'pdf' | 'excel' = 'pdf'): void {
+    console.log(`Exporting ${type} report...`);
+    this.analyticsService.exportReport(type).subscribe({
+      next: (response) => {
+        if (response.message) {
+          alert(response.message);
+        }
+        if (response.downloadUrl) {
+          // In a real implementation, you would handle the download URL
+          console.log('Download URL:', response.downloadUrl);
+          alert(`${type.toUpperCase()} report generated successfully! Download would start from: ${response.downloadUrl}`);
+        }
+      },
+      error: (error) => {
+        console.error('Error exporting report:', error);
+        alert('Failed to export report. Please try again.');
+      }
+    });
+  }
+
+  getGrowthIcon(growth: number): string {
+    return growth >= 0 ? '↗️' : '↘️';
+  }
+
+  getGrowthClass(growth: number): string {
+    return growth >= 0 ? 'text-green-600' : 'text-red-600';
   }
 }
