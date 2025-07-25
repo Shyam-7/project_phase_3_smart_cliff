@@ -69,20 +69,20 @@ const getAnalyticsOverview = async (req, res) => {
     }
 
     try {
-      // Applications growth
+      // Applications growth - using applied_at column
       const [currentMonthApps] = await pool.query(
-        'SELECT COUNT(*) as total FROM applications WHERE created_at >= ?', 
+        'SELECT COUNT(*) as total FROM applications WHERE applied_at >= ?', 
         [currentMonthStart]
       );
       const [lastMonthApps] = await pool.query(
-        'SELECT COUNT(*) as total FROM applications WHERE created_at >= ? AND created_at < ?', 
+        'SELECT COUNT(*) as total FROM applications WHERE applied_at >= ? AND applied_at < ?', 
         [lastMonth, currentMonthStart]
       );
       
       applicationGrowth = lastMonthApps[0].total > 0 ? 
         ((currentMonthApps[0].total - lastMonthApps[0].total) / lastMonthApps[0].total) * 100 : 0;
     } catch (err) {
-      console.log('Applications table may not have created_at column, using default growth');
+      console.log('Applications table may not have applied_at column, using default growth');
       applicationGrowth = Math.random() * 25 - 5;
     }
 
@@ -182,10 +182,11 @@ const getMonthlyTrends = async (req, res) => {
     
     const [trends] = await pool.query(`
       SELECT 
-        DATE_FORMAT(month_date, '%b') as month,
-        COALESCE(users, 0) as users,
-        COALESCE(jobs, 0) as jobs,
-        COALESCE(applications, 0) as applications
+        DATE_FORMAT(months.month_date, '%b') as month,
+        months.month_date as full_date,
+        COALESCE(user_data.users, 0) as users,
+        COALESCE(job_data.jobs, 0) as jobs,
+        COALESCE(app_data.applications, 0) as applications
       FROM (
         SELECT 
           DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL (n-1) MONTH), '%Y-%m-01') as month_date,
@@ -213,11 +214,11 @@ const getMonthlyTrends = async (req, res) => {
       ) job_data ON months.month_date = job_data.month_date
       LEFT JOIN (
         SELECT 
-          DATE_FORMAT(created_at, '%Y-%m-01') as month_date,
+          DATE_FORMAT(applied_at, '%Y-%m-01') as month_date,
           COUNT(*) as applications
         FROM applications 
-        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m-01')
+        WHERE applied_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+        GROUP BY DATE_FORMAT(applied_at, '%Y-%m-01')
       ) app_data ON months.month_date = app_data.month_date
       ORDER BY months.month_date
     `, [months, months, months, months]);
@@ -341,13 +342,13 @@ const getUserActivity = async (req, res) => {
       UNION ALL
       
       SELECT 
-        DATE(created_at) as date,
+        DATE(applied_at) as date,
         0 as registrations,
         0 as logins,
         COUNT(*) as applications
       FROM applications 
-      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-      GROUP BY DATE(created_at)
+      WHERE applied_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+      GROUP BY DATE(applied_at)
       
       ORDER BY date DESC
     `, [days, days]);

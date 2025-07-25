@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -73,8 +73,17 @@ export class AnalyticsService {
 
   constructor(private http: HttpClient) {}
 
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
+  }
+
   getAnalyticsOverview(): Observable<AnalyticsData> {
-    return this.http.get<ApiResponse<AnalyticsData>>(`${this.apiUrl}/analytics/overview`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<AnalyticsData>>(`${this.apiUrl}/analytics/overview`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -95,7 +104,8 @@ export class AnalyticsService {
   }
 
   getJobCategoriesData(): Observable<JobCategoryData[]> {
-    return this.http.get<ApiResponse<JobCategoryData[]>>(`${this.apiUrl}/analytics/job-categories`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<JobCategoryData[]>>(`${this.apiUrl}/analytics/job-categories`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -106,7 +116,8 @@ export class AnalyticsService {
   }
 
   getApplicationStatusData(): Observable<ApplicationStatusData[]> {
-    return this.http.get<ApiResponse<ApplicationStatusData[]>>(`${this.apiUrl}/analytics/application-status`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<ApplicationStatusData[]>>(`${this.apiUrl}/analytics/application-status`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -117,7 +128,8 @@ export class AnalyticsService {
   }
 
   getMonthlyTrends(months: number = 6): Observable<MonthlyTrend[]> {
-    return this.http.get<ApiResponse<MonthlyTrend[]>>(`${this.apiUrl}/analytics/monthly-trends?months=${months}`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<MonthlyTrend[]>>(`${this.apiUrl}/analytics/monthly-trends?months=${months}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -128,7 +140,8 @@ export class AnalyticsService {
   }
 
   getConversionData(): Observable<ConversionData> {
-    return this.http.get<ApiResponse<ConversionData>>(`${this.apiUrl}/analytics/conversion`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<ConversionData>>(`${this.apiUrl}/analytics/conversion`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -147,7 +160,8 @@ export class AnalyticsService {
   }
 
   getTopJobs(limit: number = 10): Observable<TopJob[]> {
-    return this.http.get<ApiResponse<TopJob[]>>(`${this.apiUrl}/analytics/top-jobs?limit=${limit}`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<TopJob[]>>(`${this.apiUrl}/analytics/top-jobs?limit=${limit}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -158,7 +172,8 @@ export class AnalyticsService {
   }
 
   getUserActivity(days: number = 30): Observable<UserActivity[]> {
-    return this.http.get<ApiResponse<UserActivity[]>>(`${this.apiUrl}/analytics/user-activity?days=${days}`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<UserActivity[]>>(`${this.apiUrl}/analytics/user-activity?days=${days}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -169,7 +184,8 @@ export class AnalyticsService {
   }
 
   exportReport(type: 'pdf' | 'excel' = 'pdf'): Observable<any> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/analytics/export/${type}`)
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/analytics/export/${type}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
