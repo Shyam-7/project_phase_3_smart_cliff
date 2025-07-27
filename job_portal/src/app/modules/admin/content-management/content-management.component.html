@@ -1,568 +1,516 @@
 <div class="p-6">
-        <!-- ============================================ -->
-        <!-- PAGE HEADER -->
-        <!-- ============================================ -->
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">Content Management</h1>
-          <p class="text-gray-600">View the overview of analytical data here</p>
-        </div>
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Content Management</h1>
+    <p class="text-gray-600 mt-2">Manage all website content with live preview functionality</p>
+  </div>
 
-        <!-- ============================================ -->
-        <!-- STATS CARDS SECTION -->
-        <!-- ============================================ -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <!-- Total Users -->
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex justify-between items-center mb-2">
-              <h4 class="text-sm font-medium text-gray-500">Total Users</h4>
-              <svg
-                class="h-4 w-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                ></path>
-              </svg>
-            </div>
-            <div class="text-2xl font-bold">2,841</div>
-            <p class="text-xs text-gray-500">+12.3% from last month</p>
-          </div>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <span class="ml-3 text-gray-600">Loading content...</span>
+  </div>
 
-          <!-- Archive Jobs -->
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex justify-between items-center mb-2">
-              <h4 class="text-sm font-medium text-gray-500">Archive Jobs</h4>
-              <svg
-                class="h-4 w-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
-              </svg>
-            </div>
-            <div class="text-2xl font-bold">126</div>
-            <p class="text-xs text-gray-500">+5.3% from last month</p>
-          </div>
+  <!-- Error State -->
+  <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex">
+      <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">Error</h3>
+        <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+      </div>
+    </div>
+  </div>
 
-          <!-- Applications Submitted -->
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex justify-between items-center mb-2">
-              <h4 class="text-sm font-medium text-gray-500">
-                Applications Submitted
-              </h4>
-              <svg
-                class="h-4 w-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                ></path>
-              </svg>
+  <!-- Content Groups Grid -->
+  <div *ngIf="!isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let group of contentGroups" 
+         class="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+      
+      <!-- Card Header -->
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 bg-blue-50 rounded-lg">
+              <i [class]="group.icon + ' text-blue-600 text-xl'"></i>
             </div>
-            <div class="text-2xl font-bold">385</div>
-            <p class="text-xs text-gray-500">+10.1% from last month</p>
-          </div>
-        </div>
-
-        <!-- ============================================ -->
-        <!-- CONTENT TABLES SECTION -->
-        <!-- ============================================ -->
-        <div class="space-y-8">
-          <!-- Static Pages Table -->
-          <div class="bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-              <h3 class="text-lg font-semibold">Static page</h3>
-            </div>
-            <div class="p-6">
-              <div class="overflow-x-auto">
-                <table class="w-full">
-                  <thead>
-                    <tr class="border-b text-left">
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Title
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Status
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Last modified
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">About us</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Jan 15, 2024</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">Privacy Policy</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Jan 15, 2024</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">Terms of Services</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Jan 15, 2024</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">Footer</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Jan 15, 2024</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">{{ group.title }}</h3>
+              <p class="text-sm text-gray-600 mt-1">{{ group.description }}</p>
             </div>
           </div>
-
-          <!-- Platform Policies Table -->
-          <div class="bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-              <div class="flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Platform policies</h3>
-                <button
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
-                >
-                  <svg
-                    class="h-4 w-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    ></path>
-                  </svg>
-                  New Policy
-                </button>
-              </div>
-            </div>
-            <div class="p-6">
-              <div class="overflow-x-auto">
-                <table class="w-full">
-                  <thead>
-                    <tr class="border-b text-left">
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Policy Title
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Status
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Type
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Last modified
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">
-                        Content Moderation Guidelines
-                      </td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Community</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">Data Retention Policy</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Privacy</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">Payment Processing Terms</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Active</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Financial</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">User Conduct Policy</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
-                          >Under review</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Community</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Frequently Asked Questions Table -->
-          <div class="bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-              <div class="flex justify-between items-center">
-                <h3 class="text-lg font-semibold">
-                  Frequently Asked Questions
-                </h3>
-                <button
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
-                >
-                  <svg
-                    class="h-4 w-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    ></path>
-                  </svg>
-                  New FAQ
-                </button>
-              </div>
-            </div>
-            <div class="p-6">
-              <div class="overflow-x-auto">
-                <table class="w-full">
-                  <thead>
-                    <tr class="border-b text-left">
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Policy Title
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Status
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Category
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Views
-                      </th>
-                      <th class="pb-3 text-sm font-medium text-gray-500">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">
-                        How do I create an account?
-                      </td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Published</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Community</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">How to apply for jobs?</td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Published</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Privacy</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">
-                        How to reset my password?
-                      </td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >Published</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Financial</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr class="border-b">
-                      <td class="py-4 font-medium">
-                        How do I delete my account?
-                      </td>
-                      <td class="py-4">
-                        <span
-                          class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
-                          >Draft</span
-                        >
-                      </td>
-                      <td class="py-4 text-gray-600">Community</td>
-                      <td class="py-4 text-gray-600">2024-01-12</td>
-                      <td class="py-4">
-                        <button class="p-1 hover:bg-gray-100 rounded">
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          
+          <!-- Status Badge -->
+          <span *ngIf="group.content" 
+                [class]="getStatusClass(group.content.is_active) + ' px-2 py-1 rounded-full text-xs font-medium'">
+            {{ getStatusText(group.content.is_active) }}
+          </span>
+          <span *ngIf="!group.content" 
+                class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
+            Not Set
+          </span>
         </div>
       </div>
+
+      <!-- Card Content -->
+      <div class="p-6">
+        <div *ngIf="group.content" class="space-y-3">
+          <div>
+            <span class="text-sm font-medium text-gray-500">Title:</span>
+            <p class="text-sm text-gray-900 mt-1 truncate">{{ group.content.title || 'No title' }}</p>
+          </div>
+          <div *ngIf="group.content.content">
+            <span class="text-sm font-medium text-gray-500">Content:</span>
+            <p class="text-sm text-gray-900 mt-1 line-clamp-2">{{ group.content.content }}</p>
+          </div>
+          <div *ngIf="group.content.updated_at">
+            <span class="text-sm font-medium text-gray-500">Last Updated:</span>
+            <p class="text-sm text-gray-900 mt-1">{{ group.content.updated_at | date:'short' }}</p>
+          </div>
+        </div>
+        
+        <div *ngIf="!group.content" class="text-center py-4">
+          <p class="text-gray-500 text-sm">No content configured yet</p>
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="px-6 pb-6 flex space-x-3">
+        <button (click)="editContent(group)"
+                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+          <i class="fas fa-edit mr-2"></i>
+          Edit
+        </button>
+        
+        <button *ngIf="group.content" 
+                (click)="showContentPreview(group)"
+                class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+          <i class="fas fa-eye mr-2"></i>
+          Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div *ngIf="editingContent" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+      <form [formGroup]="editForm" (ngSubmit)="saveContent()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">
+            Edit {{ editingContent.section | titlecase }} Content
+          </h2>
+          <button type="button" (click)="cancelEdit()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body with Custom Fields -->
+        <div class="p-6">
+          
+          <!-- Header Fields -->
+          <div *ngIf="editingContent.section === 'header'" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Logo Text</label>
+              <input type="text" 
+                     formControlName="logoText"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter logo text (e.g., Skillhunt)">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Navigation Links</label>
+              <div class="space-y-3">
+                <div *ngFor="let nav of navigationLinks; let i = index" class="flex space-x-3">
+                  <input [(ngModel)]="nav.text" 
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Link text"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <input [(ngModel)]="nav.href" 
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Link URL"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <button type="button" (click)="removeNavigationLink(i)" 
+                          class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+                <button type="button" (click)="addNavigationLink()" 
+                        class="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500">
+                  <i class="fas fa-plus mr-2"></i>Add Navigation Link
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Fields -->
+          <div *ngIf="editingContent.section === 'footer'" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Footer Logo Text</label>
+              <input type="text" 
+                     formControlName="logoText"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter footer logo text">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Contact Information</label>
+              <textarea formControlName="content"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter contact information"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Social Media Links</label>
+              <div class="space-y-3">
+                <div *ngFor="let social of socialLinks; let i = index" class="flex space-x-3">
+                  <select [(ngModel)]="social.platform" 
+                          [ngModelOptions]="{standalone: true}"
+                          class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="facebook">Facebook</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                  </select>
+                  <input [(ngModel)]="social.url" 
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Social media URL"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <button type="button" (click)="removeSocialLink(i)" 
+                          class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+                <button type="button" (click)="addSocialLink()" 
+                        class="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500">
+                  <i class="fas fa-plus mr-2"></i>Add Social Link
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Footer Columns</label>
+              <div class="space-y-4">
+                <div *ngFor="let column of footerColumns; let i = index" class="border border-gray-200 p-4 rounded-lg">
+                  <div class="flex justify-between items-center mb-3">
+                    <input [(ngModel)]="column.title" 
+                           [ngModelOptions]="{standalone: true}"
+                           placeholder="Column title (e.g., About Us, FAQ)"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <button type="button" (click)="removeFooterColumn(i)" 
+                            class="ml-3 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-600">Links in this column:</label>
+                    <div *ngFor="let link of column.links; let j = index" class="flex space-x-2">
+                      <input [(ngModel)]="link.text" 
+                             [ngModelOptions]="{standalone: true}"
+                             placeholder="Link text"
+                             class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-sm">
+                      <input [(ngModel)]="link.href" 
+                             [ngModelOptions]="{standalone: true}"
+                             placeholder="Link URL"
+                             class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-sm">
+                      <button type="button" (click)="removeColumnLink(i, j)" 
+                              class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <button type="button" (click)="addColumnLink(i)" 
+                            class="w-full px-2 py-1 border border-dashed border-gray-300 rounded text-gray-500 hover:border-blue-500 hover:text-blue-500 text-sm">
+                      <i class="fas fa-plus mr-1"></i>Add Link
+                    </button>
+                  </div>
+                </div>
+                <button type="button" (click)="addFooterColumn()" 
+                        class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500">
+                  <i class="fas fa-plus mr-2"></i>Add Footer Column
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Section Fields -->
+          <div *ngIf="editingContent.section === 'hero'" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Hero Title</label>
+              <input type="text" 
+                     formControlName="title"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter hero title">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Hero Subtitle</label>
+              <textarea formControlName="content"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter hero subtitle/description"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Call-to-Action Button Text</label>
+              <input type="text" 
+                     formControlName="ctaButtonText"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter CTA button text">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Search Suggestions</label>
+              <input type="text" 
+                     formControlName="searchSuggestions"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter search suggestions (comma separated)">
+            </div>
+          </div>
+
+          <!-- Welcome Section Fields -->
+          <div *ngIf="editingContent.section === 'welcome'" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Welcome Title</label>
+              <input type="text" 
+                     formControlName="title"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter welcome title">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Welcome Content</label>
+              <textarea formControlName="content"
+                        rows="4"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter welcome content"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Primary Button Text</label>
+              <input type="text" 
+                     formControlName="ctaButtonText"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter primary button text">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Secondary Links</label>
+              <div class="space-y-3">
+                <div *ngFor="let link of secondaryLinks; let i = index" class="flex space-x-3">
+                  <input [(ngModel)]="link.text" 
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Link text"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <input [(ngModel)]="link.href" 
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Link URL"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <button type="button" (click)="removeSecondaryLink(i)" 
+                          class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+                <button type="button" (click)="addSecondaryLink()" 
+                        class="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500">
+                  <i class="fas fa-plus mr-2"></i>Add Secondary Link
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- How It Works Fields -->
+          <div *ngIf="editingContent.section === 'how_it_works'" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+              <input type="text" 
+                     formControlName="title"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter section title">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Steps</label>
+              <div class="space-y-4">
+                <div *ngFor="let step of howItWorksSteps; let i = index" class="border border-gray-200 p-4 rounded-lg">
+                  <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm font-medium text-gray-600">Step {{ i + 1 }}</span>
+                    <button type="button" (click)="removeStep(i)" 
+                            class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="space-y-3">
+                    <input [(ngModel)]="step.title" 
+                           [ngModelOptions]="{standalone: true}"
+                           placeholder="Step title"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    
+                    <textarea [(ngModel)]="step.description" 
+                              [ngModelOptions]="{standalone: true}"
+                              rows="2"
+                              placeholder="Step description"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                    
+                    <input [(ngModel)]="step.icon" 
+                           [ngModelOptions]="{standalone: true}"
+                           placeholder="Icon class (e.g., fas fa-search)"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  </div>
+                </div>
+                <button type="button" (click)="addStep()" 
+                        class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500">
+                  <i class="fas fa-plus mr-2"></i>Add Step
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+          <button type="button" 
+                  (click)="cancelEdit()"
+                  class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" 
+                  [disabled]="isLoading"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <i *ngIf="isLoading" class="fas fa-spinner fa-spin mr-2"></i>
+            Update Content
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div *ngIf="showPreview && previewData" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Preview Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">
+          {{ previewData.type | titlecase }} Preview
+        </h2>
+        <button type="button" (click)="closePreview()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Preview Content -->
+      <div class="p-6">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+          
+          <!-- Header Preview -->
+          <div *ngIf="previewData.type === 'header'" class="bg-white shadow-sm p-4 rounded">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center space-x-10">
+                <h1 class="text-xl font-bold text-blue-600">{{ previewData.additionalData?.logoText || 'Logo' }}</h1>
+                <nav class="flex space-x-6">
+                  <a *ngFor="let nav of previewData.additionalData?.navigation" 
+                     href="#" class="text-gray-700 hover:text-blue-600">{{ nav.text }}</a>
+                </nav>
+              </div>
+              <div class="text-gray-600">User Menu</div>
+            </div>
+          </div>
+
+          <!-- Hero Preview -->
+          <div *ngIf="previewData.type === 'hero'" class="bg-blue-50 p-8 rounded">
+            <div class="max-w-4xl mx-auto text-center">
+              <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ previewData.title }}</h1>
+              <p class="text-lg text-gray-600 mb-6">{{ previewData.content }}</p>
+              <button class="bg-blue-600 text-white px-6 py-3 rounded-lg">
+                {{ previewData.additionalData?.ctaButtonText || 'Button' }}
+              </button>
+              <p *ngIf="previewData.additionalData?.searchSuggestions" 
+                 class="text-sm text-gray-500 mt-4">
+                Suggestions: {{ previewData.additionalData.searchSuggestions }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Welcome Preview -->
+          <div *ngIf="previewData.type === 'welcome'" class="bg-white p-8 rounded text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ previewData.title }}</h2>
+            <p class="text-gray-600 mb-6">{{ previewData.content }}</p>
+            <button class="bg-blue-600 text-white px-6 py-3 rounded-lg mb-4">
+              {{ previewData.additionalData?.ctaButtonText || 'Get Started' }}
+            </button>
+            <div *ngIf="previewData.additionalData?.secondaryLinks" class="space-y-2">
+              <a *ngFor="let link of previewData.additionalData.secondaryLinks" 
+                 href="#" class="block text-blue-500 underline text-sm">{{ link.text }}</a>
+            </div>
+          </div>
+
+          <!-- Steps Preview -->
+          <div *ngIf="previewData.type === 'steps'" class="bg-blue-50 p-8 rounded">
+            <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">{{ previewData.title }}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div *ngFor="let step of previewData.additionalData?.steps; let i = index" 
+                   class="text-center">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 relative">
+                  <i [class]="step.icon"></i>
+                  <span class="absolute -top-2 -left-2 bg-blue-800 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center">
+                    {{ i + 1 }}
+                  </span>
+                </div>
+                <h3 class="font-semibold mb-2">{{ step.title }}</h3>
+                <p class="text-sm text-gray-600">{{ step.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Preview -->
+          <div *ngIf="previewData.type === 'footer'" class="bg-gray-800 text-white p-8 rounded">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+              <div>
+                <h3 class="text-xl font-bold mb-2">{{ previewData.additionalData?.logoText || 'Logo' }}</h3>
+                <p class="text-gray-300">{{ previewData.content }}</p>
+                <div *ngIf="previewData.additionalData?.socialLinks" class="flex space-x-3 mt-3">
+                  <a *ngFor="let social of previewData.additionalData.socialLinks" 
+                     href="#" class="text-gray-300 hover:text-white">
+                    <i [class]="'fab fa-' + social.platform"></i>
+                  </a>
+                </div>
+              </div>
+              <div *ngFor="let column of previewData.additionalData?.columns" class="space-y-2">
+                <h4 class="font-semibold">{{ column.title }}</h4>
+                <ul class="space-y-1">
+                  <li *ngFor="let link of column.links">
+                    <a href="#" class="text-gray-300 hover:text-white text-sm">{{ link.text }}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        
+        <div class="mt-4 text-center">
+          <p class="text-sm text-gray-500">This is a preview of how the content will appear on the website</p>
+        </div>
+      </div>
+
+      <!-- Preview Footer -->
+      <div class="flex items-center justify-end p-6 border-t border-gray-200">
+        <button type="button" 
+                (click)="closePreview()"
+                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+          Close Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
