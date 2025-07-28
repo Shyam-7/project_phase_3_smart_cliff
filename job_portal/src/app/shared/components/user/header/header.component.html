@@ -9,6 +9,93 @@
   <div class="flex items-center space-x-6">
     <!-- Reactive user observable -->
     <ng-container *ngIf="user$ | async as user; else guest">
+      
+      <!-- Notification Bell -->
+      <div class="relative">
+        <button 
+          (click)="toggleNotificationDropdown()"
+          class="relative p-2 text-gray-600 hover:text-blue-500 transition-colors"
+        >
+          <i class="fas fa-bell text-xl"></i>
+          <!-- Unread count badge -->
+          <span *ngIf="unreadCount > 0" 
+                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+            {{ unreadCount > 99 ? '99+' : unreadCount }}
+          </span>
+        </button>
+
+        <!-- Notification Dropdown -->
+        <div *ngIf="isNotificationDropdownOpen" 
+             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden">
+          
+          <!-- Header -->
+          <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-900">Notifications</h3>
+            <div class="flex space-x-2">
+              <button *ngIf="unreadCount > 0" 
+                      (click)="markAllAsRead()"
+                      class="text-xs text-blue-600 hover:text-blue-800">
+                Mark all read
+              </button>
+              <button (click)="showAllNotifications()"
+                      class="text-xs text-blue-600 hover:text-blue-800">
+                View all
+              </button>
+            </div>
+          </div>
+
+          <!-- Notifications List -->
+          <div class="max-h-64 overflow-y-auto">
+            <div *ngIf="isLoadingNotifications" class="p-4 text-center text-gray-500">
+              <i class="fas fa-spinner fa-spin mr-2"></i>Loading...
+            </div>
+            
+            <div *ngIf="!isLoadingNotifications && notifications.length === 0" 
+                 class="p-4 text-center text-gray-500">
+              <i class="fas fa-bell-slash text-2xl mb-2"></i>
+              <p>No notifications</p>
+            </div>
+
+            <div *ngFor="let notification of notifications.slice(0, 5)" 
+                 (click)="markAsRead(notification)"
+                 [class]="getPriorityClass(notification.priority)"
+                 class="p-3 cursor-pointer hover:bg-gray-100 transition-colors">
+              <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0 mt-1">
+                  <i [class]="getNotificationIcon(notification.type)" 
+                     class="text-gray-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">
+                    {{ notification.title }}
+                  </p>
+                  <p class="text-xs text-gray-600 mt-1 line-clamp-2">
+                    {{ notification.message }}
+                  </p>
+                  <div class="flex justify-between items-center mt-2">
+                    <span class="text-xs text-gray-500">
+                      {{ formatNotificationTime(notification.created_at) }}
+                    </span>
+                    <span *ngIf="!notification.is_read" 
+                          class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div *ngIf="notifications.length > 5" 
+               class="p-3 border-t border-gray-200 text-center">
+            <button (click)="showAllNotifications()"
+                    class="text-sm text-blue-600 hover:text-blue-800">
+              View {{ notifications.length - 5 }} more notifications
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Menu -->
       <div class="relative" [class.open]="isDropdownOpen">
         <button 
           (click)="toggleDropdown()" 
@@ -71,6 +158,97 @@
       <button (click)="confirmLogout()" 
               class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
         Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Full Notifications Modal -->
+<div *ngIf="showNotificationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
+    
+    <!-- Modal Header -->
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h2 class="text-xl font-semibold text-gray-900">All Notifications</h2>
+      <div class="flex items-center space-x-3">
+        <button *ngIf="unreadCount > 0" 
+                (click)="markAllAsRead()"
+                class="text-sm text-blue-600 hover:text-blue-800">
+          Mark all as read
+        </button>
+        <button (click)="closeNotificationModal()" 
+                class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 max-h-[60vh] overflow-y-auto">
+      <div *ngIf="isLoadingNotifications" class="text-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p class="mt-2 text-gray-600">Loading notifications...</p>
+      </div>
+      
+      <div *ngIf="!isLoadingNotifications && notifications.length === 0" 
+           class="text-center py-8">
+        <i class="fas fa-bell-slash text-4xl text-gray-400 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
+        <p class="text-gray-600">You're all caught up! Check back later for new updates.</p>
+      </div>
+
+      <div *ngIf="!isLoadingNotifications && notifications.length > 0" class="space-y-4">
+        <div *ngFor="let notification of notifications" 
+             (click)="markAsRead(notification)"
+             [class]="getPriorityClass(notification.priority)"
+             class="p-4 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+          <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0 mt-1">
+              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <i [class]="getNotificationIcon(notification.type)" 
+                   class="text-blue-600 text-sm"></i>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start">
+                <h4 class="text-sm font-medium text-gray-900">
+                  {{ notification.title }}
+                </h4>
+                <div class="flex items-center space-x-2 ml-2">
+                  <span class="text-xs text-gray-500">
+                    {{ formatNotificationTime(notification.created_at) }}
+                  </span>
+                  <span *ngIf="!notification.is_read" 
+                        class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
+              
+              <!-- Notification metadata -->
+              <div class="flex items-center justify-between mt-3">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  {{ notification.type | titlecase }}
+                </span>
+                <span *ngIf="notification.priority === 'urgent'" 
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  <i class="fas fa-exclamation-triangle mr-1"></i>Urgent
+                </span>
+                <span *ngIf="notification.priority === 'high'" 
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  High Priority
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-6 border-t border-gray-200 flex justify-end">
+      <button (click)="closeNotificationModal()" 
+              class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+        Close
       </button>
     </div>
   </div>

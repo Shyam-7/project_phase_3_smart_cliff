@@ -1,4 +1,5 @@
 <div class="p-6">
+<div class="p-6">
     <!-- ============================================ -->
     <!-- PAGE HEADER -->
     <!-- ============================================ -->
@@ -7,6 +8,47 @@
         <p class="text-gray-600">
             Send platform wide announcements and manage notifications
         </p>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <button (click)="closeAlert()" class="inline-flex text-green-400 hover:text-green-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="error" class="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-red-800">{{ error }}</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <button (click)="closeAlert()" class="inline-flex text-red-400 hover:text-red-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================ -->
@@ -26,14 +68,12 @@
                 </h3>
             </div>
             <div class="space-y-4">
-                <div class="text-4xl font-bold">3</div>
+                <div class="text-4xl font-bold">{{ stats.total_announcements }}</div>
                 <div class="text-sm text-gray-600">Total announcements</div>
                 <div class="flex space-x-2">
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                        Create Announcements +
-                    </button>
-                    <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Announcement History
+                    <button (click)="toggleAnnouncementHistory()" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        {{ showAnnouncementHistory ? 'Hide' : 'Show' }} Announcement History
                     </button>
                 </div>
             </div>
@@ -49,15 +89,58 @@
                 <h3 class="text-lg font-semibold">Trigger notifications</h3>
             </div>
             <div class="space-y-4">
-                <div class="text-4xl font-bold">126</div>
+                <div class="text-4xl font-bold">{{ stats.active_notifications }}</div>
                 <div class="text-sm text-gray-600">Active Notifications</div>
-                <div class="flex space-x-2">
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                        Manage notifications ⚡
-                    </button>
-                    <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Active Notification Triggers
-                    </button>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div class="bg-green-50 p-2 rounded">
+                        <div class="font-semibold text-green-800">{{ stats.sent_announcements }}</div>
+                        <div class="text-green-600">Sent</div>
+                    </div>
+                    <div class="bg-blue-50 p-2 rounded">
+                        <div class="font-semibold text-blue-800">{{ stats.scheduled_announcements }}</div>
+                        <div class="text-blue-600">Scheduled</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================ -->
+    <!-- ANNOUNCEMENT HISTORY SECTION -->
+    <!-- ============================================ -->
+    <div *ngIf="showAnnouncementHistory" class="mb-8 bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold">Announcement History</h3>
+            <p class="text-sm text-gray-600">Recent announcements and their status</p>
+        </div>
+        <div class="p-6">
+            <div *ngIf="isLoading" class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-2 text-gray-600">Loading announcements...</p>
+            </div>
+            <div *ngIf="!isLoading && announcements.length === 0" class="text-center py-8 text-gray-500">
+                No announcements found
+            </div>
+            <div *ngIf="!isLoading && announcements.length > 0" class="space-y-4">
+                <div *ngFor="let announcement of announcements" 
+                     class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ announcement.title }}</h4>
+                        <div class="flex space-x-2">
+                            <span [class]="getStatusBadgeClass(announcement.status)" 
+                                  class="px-2 py-1 rounded-full text-xs font-medium">
+                                {{ announcement.status | titlecase }}
+                            </span>
+                            <span [class]="getTypeBadgeClass(announcement.type)" 
+                                  class="px-2 py-1 rounded-full text-xs font-medium">
+                                {{ announcement.type | titlecase }}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">{{ announcement.message }}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>Target: {{ announcement.target_audience | titlecase }}</span>
+                        <span>{{ formatDate(announcement.created_at) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,20 +165,25 @@
         </div>
 
         <!-- Form Content -->
-        <div class="p-6 space-y-6">
+        <form [formGroup]="announcementForm" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
             <!-- Announcement Title -->
             <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Announcement Title</label>
-                <input type="text" placeholder="Announcement Title"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <label class="text-sm font-medium text-gray-700">Announcement Title *</label>
+                <input type="text" 
+                       formControlName="title"
+                       placeholder="Announcement Title"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <div *ngIf="announcementForm.get('title')?.invalid && announcementForm.get('title')?.touched" 
+                     class="text-red-600 text-sm">
+                    Title is required
+                </div>
             </div>
 
             <!-- Type -->
             <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Type</label>
-                <select
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select announcement type</option>
+                <label class="text-sm font-medium text-gray-700">Type *</label>
+                <select formControlName="type"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="general">General</option>
                     <option value="maintenance">Maintenance</option>
                     <option value="feature">New Feature</option>
@@ -105,17 +193,22 @@
 
             <!-- Messages -->
             <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Messages</label>
-                <textarea placeholder="Enter your announcement message..." rows="4"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <label class="text-sm font-medium text-gray-700">Messages *</label>
+                <textarea formControlName="message"
+                          placeholder="Enter your announcement message..." 
+                          rows="4"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <div *ngIf="announcementForm.get('message')?.invalid && announcementForm.get('message')?.touched" 
+                     class="text-red-600 text-sm">
+                    Message is required
+                </div>
             </div>
 
             <!-- Target Audience -->
             <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700">Target Audience</label>
-                <select
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select Target Audience</option>
+                <label class="text-sm font-medium text-gray-700">Target Audience *</label>
+                <select formControlName="target_audience"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="all">All Users</option>
                     <option value="job-seekers">Job Seekers</option>
                     <option value="employers">Employers</option>
@@ -124,19 +217,25 @@
             </div>
 
             <!-- Send Method -->
-            <div class="space-y-3">
+            <div class="space-y-3" formGroupName="send_methods">
                 <label class="text-sm font-medium text-gray-700">Send Method</label>
                 <div class="flex space-x-6">
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <input type="checkbox" 
+                               formControlName="email"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                         <span class="text-sm">Email</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <input type="checkbox" 
+                               formControlName="in_app"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                         <span class="text-sm">In-App</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <input type="checkbox" 
+                               formControlName="push"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                         <span class="text-sm">Push</span>
                     </label>
                 </div>
@@ -145,35 +244,34 @@
             <!-- Schedule Date and Time -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Schedule Date</label>
+                    <label class="text-sm font-medium text-gray-700">Schedule Date (Optional)</label>
                     <input type="date"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                           formControlName="scheduled_at"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Schedule Time</label>
+                    <label class="text-sm font-medium text-gray-700">Schedule Time (Optional)</label>
                     <input type="time"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                           formControlName="schedule_time"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex space-x-3 pt-4">
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
-                    Send Now
+                <button type="submit" 
+                        [disabled]="isSubmitting"
+                        class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg transition-colors">
+                    <span *ngIf="isSubmitting">Sending...</span>
+                    <span *ngIf="!isSubmitting">Send Now</span>
                 </button>
-                <button
-                    class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center transition-colors">
-                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                        </path>
-                    </svg>
-                    Schedule
-                </button>
-                <button class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <button type="button"
+                        (click)="saveDraft()"
+                        [disabled]="isSubmitting"
+                        class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 transition-colors">
                     Save as draft
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 </div>

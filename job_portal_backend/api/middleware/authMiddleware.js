@@ -15,11 +15,9 @@ const protect = (req, res, next) => {
       req.user = decoded;
       next(); // Proceed to the next middleware or route handler
     } catch (error) {
-      console.log('Token verification failed:', error.message);
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   } else {
-    console.log('No authorization header or invalid format');
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };

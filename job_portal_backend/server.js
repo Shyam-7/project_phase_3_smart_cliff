@@ -10,6 +10,7 @@ const userRoutes = require('./api/routes/users');
 const analyticsRoutes = require('./api/routes/analytics');
 const adminDashboardRoutes = require('./api/routes/adminDashboard');
 const contentRoutes = require('./api/routes/content');
+const communicationRoutes = require('./api/routes/communication');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/communication', communicationRoutes);
 
 const PORT = process.env.PORT || 3001;
 
