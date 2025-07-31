@@ -71,11 +71,14 @@ export class CommunicationService {
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.loadUnreadCount();
+    // Only load unread count in browser environment
+    if (typeof window !== 'undefined') {
+      this.loadUnreadCount();
+    }
   }
 
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('authToken');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -179,11 +182,17 @@ export class CommunicationService {
 
   // Load unread count
   loadUnreadCount(): void {
-    this.getUserNotifications(1, 1).subscribe(response => {
-      if (response.success) {
-        this.unreadCountSubject.next(response.unread);
-      }
-    });
+    // Only load unread count if running in browser and user is authenticated
+    if (typeof window !== 'undefined') {
+      this.getUserNotifications(1, 1).subscribe(response => {
+        if (response.success) {
+          this.unreadCountSubject.next(response.unread);
+        }
+      }, error => {
+        // Silently handle auth errors on SSR
+        this.unreadCountSubject.next(0);
+      });
+    }
   }
 
   // Notification Preferences

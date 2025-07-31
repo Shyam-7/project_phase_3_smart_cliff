@@ -28,8 +28,31 @@ export const RoleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const expectedRole = route.data['role'];
   const user = auth.getCurrentUser();
 
-  if (user && user.role === expectedRole) return true;
+  console.log('RoleGuard - Expected role:', expectedRole);
+  console.log('RoleGuard - Current user:', user);
 
-  router.navigate(['/auth/login']);
+  if (user && user.role === expectedRole) {
+    return true;
+  }
+
+  // Handle 'user' role as 'job_seeker' for backward compatibility
+  if (user && expectedRole === 'job_seeker' && user.role === 'user') {
+    return true;
+  }
+
+  // If user is logged in but has wrong role, redirect based on their actual role
+  if (user && user.role) {
+    if (user.role === 'admin') {
+      router.navigate(['/admin/dashboard'], { replaceUrl: true });
+    } else if (user.role === 'job_seeker' || user.role === 'user') {
+      router.navigate(['/user/dashboard'], { replaceUrl: true });
+    } else {
+      router.navigate(['/'], { replaceUrl: true });
+    }
+  } else {
+    // Not logged in, redirect to login
+    router.navigate(['/auth/login'], { replaceUrl: true });
+  }
+  
   return false;
 };

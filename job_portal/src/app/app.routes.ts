@@ -25,11 +25,23 @@ import { ResetPasswordComponent } from './modules/auth/reset-password/reset-pass
 import { UserDashboardComponent } from './modules/user/user-dashboard/user-dashboard.component';
 
 export const routes: Routes = [
+  // Default route - goes to user dashboard (public access)
+  { path: '', component: UserLayoutComponent, children: [
+    { path: '', component: UserDashboardComponent }
+  ]},
+  
+  // Public routes (no authentication required)
+  {
+    path: 'public',
+    component: UserLayoutComponent,
+    children: [
+      { path: 'jobs', component: JobSearchComponent },
+      { path: 'job-details/:id', component: JobDetailsComponent }
+    ]
+  },
   {
     path: 'admin',
     component: AdminLayoutComponent,
-
-    //temp disabled for testing
     canActivate: [AuthGuard, RoleGuard],
     data: { role: 'admin' },
     children: [
@@ -45,17 +57,16 @@ export const routes: Routes = [
   {
     path: 'user',
     component: UserLayoutComponent,
-    //temp disabled for testing
     canActivate: [AuthGuard, RoleGuard],
     data: { role: 'job_seeker' }, // Changed from 'user' to 'job_seeker'
     children: [
-      { path: 'user-dashboard', component: UserDashboardComponent },
+      { path: 'dashboard', component: UserDashboardComponent },
       { path: 'applied-jobs', component: AppliedJobsComponent },
       { path: 'job-details/:id', component: JobDetailsComponent },
       { path: 'job-search', component: JobSearchComponent },
       { path: 'saved-jobs', component: SavedJobsComponent },
       { path: 'user-profile', component: UserProfileComponent },
-      { path: '', redirectTo: 'user-dashboard', pathMatch: 'full' } // Fixed redirect
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
   {
@@ -68,6 +79,5 @@ export const routes: Routes = [
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'auth/login' }
+  { path: '**', redirectTo: '', pathMatch: 'full' }
 ];

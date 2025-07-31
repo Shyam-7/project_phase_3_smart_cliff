@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from "../../../shared/shared.module";
 import { ContentService, UserDashboardContent } from '../../../core/services/content.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -19,7 +20,8 @@ export class UserDashboardComponent implements OnInit {
   constructor(
     private fb: FormBuilder, 
     private router: Router,
-    private contentService: ContentService
+    private contentService: ContentService,
+    private authService: AuthService
   ) {
     this.searchForm = this.fb.group({
       query: [''],
@@ -50,12 +52,36 @@ export class UserDashboardComponent implements OnInit {
 
   onSearch() {
     const { query, location } = this.searchForm.value;
-    this.router.navigate(['/user/job-search'], {
-      queryParams: { 
-        q: query || null, 
-        l: location || null 
-      },
-      queryParamsHandling: 'merge'
-    });
+    
+    console.log('Search initiated with query:', query, 'location:', location);
+    
+    // Check if user is logged in to determine which route to use
+    const isLoggedIn = this.authService.isLoggedIn();
+    const currentUser = this.authService.getCurrentUser();
+    
+    console.log('User logged in:', isLoggedIn);
+    console.log('Current user:', currentUser);
+    
+    if (isLoggedIn && currentUser) {
+      // Authenticated user - go to user job search
+      console.log('Navigating to /user/job-search');
+      this.router.navigate(['/user/job-search'], {
+        queryParams: { 
+          q: query || null, 
+          l: location || null 
+        },
+        queryParamsHandling: 'merge'
+      });
+    } else {
+      // Non-authenticated user - go to public job search
+      console.log('Navigating to /public/jobs');
+      this.router.navigate(['/public/jobs'], {
+        queryParams: { 
+          q: query || null, 
+          l: location || null 
+        },
+        queryParamsHandling: 'merge'
+      });
+    }
   }
 }

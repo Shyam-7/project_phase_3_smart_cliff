@@ -29,6 +29,7 @@ export const AuthGuard: CanActivateFn = () => {
 
   if (auth.isLoggedIn()) return true;
 
-  router.navigate(['/auth/login']);
+  // Redirect to main dashboard instead of login when not authenticated
+  router.navigate(['/'], { replaceUrl: true });
   return false;
 };

@@ -27,6 +27,9 @@ export class AuthService {
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    // Clear any invalid tokens on startup to ensure clean state
+    this.validateStoredAuth();
+    
     // Check if running in browser before accessing localStorage
     const savedUser = isPlatformBrowser(this.platformId) && typeof localStorage !== 'undefined' 
       ? JSON.parse(localStorage.getItem('currentUser') || 'null')
@@ -35,6 +38,26 @@ export class AuthService {
     this.currentUserSubject = new BehaviorSubject<any>(savedUser);
     this.currentUser = this.currentUserSubject.asObservable();
     this.currentUser$ = this.currentUser; // Alias
+  }
+
+  // Validate stored authentication data
+  private validateStoredAuth(): void {
+    if (isPlatformBrowser(this.platformId) && typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('authToken');
+      const user = localStorage.getItem('currentUser');
+      
+      // If we have a token but no user, or vice versa, clear both
+      if ((token && !user) || (!token && user)) {
+        this.clearAuthData();
+      }
+    }
+  }
+
+  // Clear all authentication data
+  private clearAuthData(): void {
+    this.removeItem('authToken');
+    this.removeItem('currentUser');
+    this.currentUserSubject.next(null);
   }
 
   // Safe localStorage access methods
@@ -98,12 +121,57 @@ export class AuthService {
     this.removeItem('currentUser');
     this.currentUserSubject.next(null);
     if (navigate) {
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/']); // Navigate to main dashboard
     }
   }
 
   isLoggedIn(): boolean {
-    return !!this.getItem('authToken');
+    const token = this.getItem('authToken');
+    const user = this.getItem('currentUser');
+    
+    // Both token and user must exist for valid authentication
+    if (token && user) {
+      try {
+        JSON.parse(user); // Validate user data is valid JSON
+        return true;
+      } catch {
+        this.clearAuthData();
+        return false;
+      }
+    }
+    
+    // Clear any partial auth data
+    if (token || user) {
+      this.clearAuthData();
+    }
+    
+    return false;
+  }
+
+  // Force clear all authentication data
+  forceLogout(): void {
+    this.clearAuthData();
+    this.router.navigate(['/']);
+  }
+
+  // Development utility to clear all stored data
+  clearAllStoredData(): void {
+    if (isPlatformBrowser(this.platformId) && typeof localStorage !== 'undefined') {
+      // Clear authentication data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('appliedJobs');
+      localStorage.removeItem('user_session');
+      
+      // Clear any other job portal related data
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('job') || key.includes('auth') || key.includes('user')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      this.currentUserSubject.next(null);
+    }
   }
 
   // Password reset methods (placeholder implementations)

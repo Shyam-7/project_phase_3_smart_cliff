@@ -32,7 +32,7 @@ export class JobDetailsComponent implements OnInit {
     private router: Router,
     private jobService: JobService,
     private applicationService: ApplicationService,
-    private authService: AuthService
+    public authService: AuthService  // Made public for template access
   ) { }
 
   ngOnInit(): void {
@@ -103,7 +103,20 @@ export class JobDetailsComponent implements OnInit {
   }
 
   navigateBack(): void {
-    this.router.navigate(['user/job-search']);
+    // Navigate back to appropriate job search route based on authentication
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['user/job-search']);
+    } else {
+      this.router.navigate(['public/jobs']);
+    }
+  }
+
+  navigateToLogin(): void {
+    this.router.navigate(['/auth/login']);
+  }
+
+  navigateToSignup(): void {
+    this.router.navigate(['/auth/signup']);
   }
   openApplicationModal() {
     if (!this.authService.isLoggedIn()) {

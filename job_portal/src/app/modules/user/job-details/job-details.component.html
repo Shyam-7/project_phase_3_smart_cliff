@@ -72,26 +72,49 @@
             </div>
           </div>
           <div class="apply-section">
-            <div *ngIf="!hasApplied">
-              <button 
-                (click)="openApplicationModal()" 
-                class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                Apply Now
-              </button>
-            </div>
-            
-            <div *ngIf="hasApplied" class="space-y-2">
-              <button 
-                disabled
-                class="w-full bg-green-600 text-white px-6 py-2 rounded-lg cursor-not-allowed font-medium">
-                ✓ Applied
-              </button>
-              <button 
-                (click)="withdrawApplication()"
-                class="w-full bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
-                Withdraw Application
-              </button>
-            </div>
+            <!-- Show different UI based on authentication status -->
+            <ng-container *ngIf="authService.isLoggedIn(); else guestApply">
+              <!-- Authenticated user -->
+              <div *ngIf="!hasApplied">
+                <button 
+                  (click)="openApplicationModal()" 
+                  class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                  Apply Now
+                </button>
+              </div>
+              
+              <div *ngIf="hasApplied" class="space-y-2">
+                <button 
+                  disabled
+                  class="w-full bg-green-600 text-white px-6 py-2 rounded-lg cursor-not-allowed font-medium">
+                  ✓ Applied
+                </button>
+                <button 
+                  (click)="withdrawApplication()"
+                  class="w-full bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                  Withdraw Application
+                </button>
+              </div>
+            </ng-container>
+
+            <!-- Guest user - show login/signup options -->
+            <ng-template #guestApply>
+              <div class="space-y-3">
+                <p class="text-sm text-gray-600 text-center">To apply for this job, please:</p>
+                <div class="flex space-x-2">
+                  <button 
+                    (click)="navigateToLogin()"
+                    class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    Login to Apply
+                  </button>
+                  <button 
+                    (click)="navigateToSignup()"
+                    class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                    Sign Up to Apply
+                  </button>
+                </div>
+              </div>
+            </ng-template>
           </div>
         </div>
       </div>

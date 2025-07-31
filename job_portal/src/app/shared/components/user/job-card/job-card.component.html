@@ -39,9 +39,16 @@
           {{ job.logoText || (job.company || job.company_name)?.charAt(0)?.toUpperCase() || 'C' }}
         </div>
         <img *ngIf="job.logo" [src]="job.logo" class="w-12 h-12 mb-2 rounded" [alt]="(job.company || job.company_name) + ' Logo'">
-        <button (click)="saveJob($event)" class="text-blue-600 text-sm hover:underline">
-          <i class="far fa-bookmark"></i> Save
-        </button>
+        <ng-container *ngIf="authService.isLoggedIn(); else guestSave">
+          <button (click)="saveJob($event)" class="text-blue-600 text-sm hover:underline">
+            <i class="far fa-bookmark"></i> Save
+          </button>
+        </ng-container>
+        <ng-template #guestSave>
+          <button (click)="loginToSave($event)" class="text-gray-400 text-sm hover:text-blue-600 transition-colors">
+            <i class="far fa-bookmark"></i> Login to Save
+          </button>
+        </ng-template>
       </div>
     </div>
   </div>
