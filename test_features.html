@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Communication Features</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { padding: 10px; margin: 5px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Test Communication Features</h1>
+    
+    <div class="section">
+        <h2>1. Test Draft Creation</h2>
+        <button onclick="testCreateDraft()">Create Draft Announcement</button>
+        <div id="draftResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Test Get Drafts</h2>
+        <button onclick="testGetDrafts()">Get Draft Announcements</button>
+        <div id="getDraftsResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Test Edit Draft</h2>
+        <input type="number" id="draftId" placeholder="Draft ID">
+        <button onclick="testEditDraft()">Edit Draft</button>
+        <div id="editResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. Test Stats</h2>
+        <button onclick="testGetStats()">Get Stats</button>
+        <div id="statsResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api/communication';
+        
+        // Mock token for testing - in real app this comes from localStorage
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczNzU0MzgyNn0.rHOO9gvP_RryAqvZDu6j0Y13jqYJNmlEhd0TLkSVA7I';
+        
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+        
+        async function testCreateDraft() {
+            try {
+                const response = await fetch(`${API_BASE}/announcements`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        title: 'Test Draft Announcement',
+                        message: 'This is a test draft message',
+                        type: 'general',
+                        target_audience: 'all',
+                        send_methods: {
+                            email: false,
+                            in_app: true,
+                            push: false
+                        },
+                        status: 'draft'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('draftResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('draftResult').innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testGetDrafts() {
+            try {
+                const response = await fetch(`${API_BASE}/announcements/drafts`, {
+                    headers: getHeaders()
+                });
+                const data = await response.json();
+                document.getElementById('getDraftsResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('getDraftsResult').innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testEditDraft() {
+            const draftId = document.getElementById('draftId').value;
+            if (!draftId) {
+                alert('Please enter a draft ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/announcements/${draftId}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        title: 'Updated Draft Title',
+                        message: 'Updated draft message content',
+                        type: 'feature'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('editResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('editResult').innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testGetStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`, {
+                    headers: getHeaders()
+                });
+                const data = await response.json();
+                document.getElementById('statsResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('statsResult').innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

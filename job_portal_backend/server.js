@@ -12,6 +12,9 @@ const adminDashboardRoutes = require('./api/routes/adminDashboard');
 const contentRoutes = require('./api/routes/content');
 const communicationRoutes = require('./api/routes/communication');
 
+// --- Import Scheduled Job Manager ---
+const scheduledJobManager = require('./scheduledJobs');
+
 const app = express();
 
 // --- Middleware ---
@@ -33,4 +36,20 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, 'localhost', () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Start the scheduled job manager
+  scheduledJobManager.start();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  scheduledJobManager.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down gracefully');
+  scheduledJobManager.stop();
+  process.exit(0);
 });

@@ -13,6 +13,8 @@ import { CommunicationService, Announcement, AnnouncementStats } from '../../../
 export class CommunicationComponent implements OnInit {
   announcementForm: FormGroup;
   announcements: Announcement[] = [];
+  scheduledAnnouncements: Announcement[] = [];
+  draftAnnouncements: Announcement[] = [];
   stats: AnnouncementStats = {
     total_announcements: 0,
     sent_announcements: 0,
@@ -25,7 +27,11 @@ export class CommunicationComponent implements OnInit {
   isSubmitting = false;
   error: string | null = null;
   successMessage: string | null = null;
-  showAnnouncementHistory = false;
+  showAnnouncementHistory = true; // Changed to true by default
+  showCreateForm = false;
+  showScheduledAnnouncements = false;
+  showDraftAnnouncements = false;
+  editingAnnouncement: Announcement | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -49,6 +55,8 @@ export class CommunicationComponent implements OnInit {
   ngOnInit(): void {
     this.loadStats();
     this.loadAnnouncements();
+    this.loadScheduledAnnouncements();
+    this.loadDraftAnnouncements();
   }
 
   loadStats(): void {
@@ -92,22 +100,17 @@ export class CommunicationComponent implements OnInit {
         ...(scheduledAt && { scheduled_at: scheduledAt })
       };
 
-      this.communicationService.createAnnouncement(announcementData).subscribe(response => {
+      const operation = this.editingAnnouncement 
+        ? this.communicationService.updateAnnouncement(this.editingAnnouncement.id!, announcementData)
+        : this.communicationService.createAnnouncement(announcementData);
+
+      operation.subscribe(response => {
         this.isSubmitting = false;
         if (response.success) {
           this.successMessage = scheduledAt ? 'Announcement scheduled successfully!' : 'Announcement sent successfully!';
-          this.announcementForm.reset();
-          this.announcementForm.patchValue({
-            type: 'general',
-            target_audience: 'all',
-            send_methods: {
-              email: false,
-              in_app: true,
-              push: false
-            }
-          });
-          this.loadStats();
-          this.loadAnnouncements();
+          this.resetForm();
+          this.closeCreateForm();
+          this.refreshAllData();
         } else {
           this.error = response.message || 'Failed to create announcement';
         }
@@ -119,7 +122,6 @@ export class CommunicationComponent implements OnInit {
 
   saveDraft(): void {
     if (this.announcementForm.get('title')?.value && this.announcementForm.get('message')?.value) {
-      // For draft, we'll just save the announcement without scheduling or sending
       this.isSubmitting = true;
       this.error = null;
 
@@ -129,15 +131,20 @@ export class CommunicationComponent implements OnInit {
         message: formValue.message,
         type: formValue.type,
         target_audience: formValue.target_audience,
-        send_methods: formValue.send_methods
+        send_methods: formValue.send_methods,
+        status: 'draft'
       };
 
-      this.communicationService.createAnnouncement(announcementData).subscribe(response => {
+      const operation = this.editingAnnouncement 
+        ? this.communicationService.updateAnnouncement(this.editingAnnouncement.id!, announcementData)
+        : this.communicationService.createAnnouncement(announcementData);
+
+      operation.subscribe(response => {
         this.isSubmitting = false;
         if (response.success) {
           this.successMessage = 'Draft saved successfully!';
-          this.loadStats();
-          this.loadAnnouncements();
+          this.closeCreateForm();
+          this.refreshAllData();
         } else {
           this.error = response.message || 'Failed to save draft';
         }
@@ -201,5 +208,136 @@ export class CommunicationComponent implements OnInit {
   closeAlert(): void {
     this.error = null;
     this.successMessage = null;
+  }
+
+  // Edit scheduled announcement
+  editScheduledAnnouncement(announcement: Announcement): void {
+    this.editingAnnouncement = announcement;
+    this.populateFormWithAnnouncement(announcement);
+    this.showCreateForm = true;
+    this.showScheduledAnnouncements = false;
+  }
+
+  // Edit draft announcement
+  editDraftAnnouncement(announcement: Announcement): void {
+    this.editingAnnouncement = announcement;
+    this.populateFormWithAnnouncement(announcement);
+    this.showCreateForm = true;
+    this.showDraftAnnouncements = false;
+  }
+
+  // Helper method to populate form with announcement data
+  populateFormWithAnnouncement(announcement: Announcement): void {
+    const scheduledDate = announcement.scheduled_at ? new Date(announcement.scheduled_at) : null;
+    
+    this.announcementForm.patchValue({
+      title: announcement.title,
+      message: announcement.message,
+      type: announcement.type,
+      target_audience: announcement.target_audience,
+      send_methods: announcement.send_methods,
+      scheduled_at: scheduledDate ? scheduledDate.toISOString().split('T')[0] : '',
+      schedule_time: scheduledDate ? scheduledDate.toTimeString().split(' ')[0].substring(0, 5) : ''
+    });
+  }
+
+  // Cancel scheduled announcement
+  cancelScheduledAnnouncement(announcementId: string): void {
+    if (confirm('Are you sure you want to cancel this scheduled announcement?')) {
+      this.communicationService.cancelScheduledAnnouncement(announcementId).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.successMessage = 'Scheduled announcement cancelled successfully';
+            this.refreshAllData();
+          }
+        },
+        error: (error) => {
+          this.error = 'Failed to cancel scheduled announcement';
+        }
+      });
+    }
+  }
+
+  // Delete draft announcement
+  deleteDraftAnnouncement(announcementId: string): void {
+    if (confirm('Are you sure you want to delete this draft?')) {
+      // We can reuse the cancel endpoint or create a specific delete endpoint
+      this.communicationService.cancelScheduledAnnouncement(announcementId).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.successMessage = 'Draft deleted successfully';
+            this.refreshAllData();
+          }
+        },
+        error: (error) => {
+          this.error = 'Failed to delete draft';
+        }
+      });
+    }
+  }
+
+  // Load draft announcements
+  loadDraftAnnouncements(): void {
+    this.communicationService.getDraftAnnouncements().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.draftAnnouncements = response.announcements;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading draft announcements:', error);
+      }
+    });
+  }
+
+  // Load scheduled announcements
+  loadScheduledAnnouncements(): void {
+    this.communicationService.getScheduledAnnouncements().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.scheduledAnnouncements = response.announcements;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading scheduled announcements:', error);
+      }
+    });
+  }
+
+  // Refresh all data
+  refreshAllData(): void {
+    this.loadStats();
+    this.loadAnnouncements();
+    this.loadScheduledAnnouncements();
+    this.loadDraftAnnouncements();
+  }
+
+  // Reset form
+  resetForm(): void {
+    this.announcementForm.reset();
+    this.announcementForm.patchValue({
+      type: 'general',
+      target_audience: 'all',
+      send_methods: {
+        email: false,
+        in_app: true,
+        push: false
+      }
+    });
+    this.editingAnnouncement = null;
+  }
+
+  // Close create form
+  closeCreateForm(): void {
+    this.showCreateForm = false;
+    this.resetForm();
+  }
+
+  // Toggle drafts section
+  toggleDraftAnnouncements(): void {
+    this.showDraftAnnouncements = !this.showDraftAnnouncements;
+    if (this.showDraftAnnouncements) {
+      this.loadDraftAnnouncements();
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
@@ -116,6 +116,17 @@ export class AuthService {
       resetCode, 
       newPassword 
     });
+  }
+
+  // Change password for authenticated user
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    const token = this.getItem('authToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    return this.http.post(`${this.apiUrl}/change-password`, {
+      currentPassword,
+      newPassword
+    }, { headers });
   }
 
   // Role management method

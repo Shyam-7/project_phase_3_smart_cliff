@@ -38,11 +38,18 @@ exports.login = async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     const user = rows[0];
 
+    console.log('User found:', user ? 'Yes' : 'No');
+    if (user) {
+      console.log('User role:', user.role);
+      console.log('Password hash from DB:', user.password_hash);
+    }
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid username or password.' });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    console.log('Password match:', passwordMatch);
     
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Invalid username or password.' });
@@ -55,6 +62,7 @@ exports.login = async (req, res) => {
     );
 
     res.json({
+      success: true,
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
     });

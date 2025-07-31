@@ -17,8 +17,8 @@
           </path>
         </svg>
       </div>
-      <div class="text-2xl font-bold">{{jobs.length}}</div>
-      <p class="text-xs text-gray-500">+{{jobs.length > 0 ? ((jobs.length / 10) * 100).toFixed(1) : 0}}% from last month</p>
+      <div class="text-2xl font-bold">{{totalJobsCount}}</div>
+      <p class="text-xs text-gray-500">+{{totalJobsCount > 0 ? ((totalJobsCount / 10) * 100).toFixed(1) : 0}}% from last month</p>
     </div>
 
     <!-- Active Jobs -->
@@ -30,8 +30,8 @@
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </div>
-      <div class="text-2xl font-bold">{{jobs.length}}</div>
-      <p class="text-xs text-gray-500">All jobs currently active</p>
+      <div class="text-2xl font-bold">{{activeJobsCount}}</div>
+      <p class="text-xs text-gray-500">Jobs with active status</p>
     </div>
 
     <!-- Applications -->
@@ -43,8 +43,8 @@
             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
         </svg>
       </div>
-      <div class="text-2xl font-bold">0</div>
-      <p class="text-xs text-gray-500">No application data available</p>
+      <div class="text-2xl font-bold">{{ totalApplications }}</div>
+      <p class="text-xs text-gray-500">Total applications across all jobs</p>
     </div>
   </div>
 
@@ -76,6 +76,7 @@
               <th class="pb-3 text-sm font-medium text-gray-500">Company</th>
               <th class="pb-3 text-sm font-medium text-gray-500">Location</th>
               <th class="pb-3 text-sm font-medium text-gray-500">Posted</th>
+              <th class="pb-3 text-sm font-medium text-gray-500">Applications</th>
               <th class="pb-3 text-sm font-medium text-gray-500">Actions</th>
             </tr>
           </thead>
@@ -85,6 +86,7 @@
               <td class="py-4">{{job.company || job.company_name}}</td>
               <td class="py-4">{{job.location}}</td>
               <td class="py-4 text-gray-600">{{formatDate(job.posted || job.created_at || '')}}</td>
+              <td class="py-4">{{ job.applications || 0 }}</td>
               <td class="py-4">
                 <div class="flex space-x-2">
                   <button (click)="editJob(job)" class="p-1 hover:bg-gray-100 rounded text-blue-600">

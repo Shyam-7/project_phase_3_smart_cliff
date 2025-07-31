@@ -250,4 +250,52 @@ export class CommunicationService {
       return notificationTime.toLocaleDateString();
     }
   }
+
+  // Get scheduled announcements
+  getScheduledAnnouncements(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/announcements/scheduled`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching scheduled announcements:', error);
+        return of({ success: false, message: 'Failed to fetch scheduled announcements', announcements: [] });
+      })
+    );
+  }
+
+  // Get draft announcements
+  getDraftAnnouncements(page: number = 1, limit: number = 10): Observable<any> {
+    return this.http.get(`${this.baseUrl}/announcements/drafts?page=${page}&limit=${limit}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching draft announcements:', error);
+        return of({ success: false, announcements: [], total: 0 });
+      })
+    );
+  }
+
+  // Update announcement
+  updateAnnouncement(id: number, announcement: Partial<Announcement>): Observable<any> {
+    return this.http.put(`${this.baseUrl}/announcements/${id}`, announcement, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Error updating announcement:', error);
+        return of({ success: false, message: 'Failed to update announcement' });
+      })
+    );
+  }
+
+  // Cancel scheduled announcement
+  cancelScheduledAnnouncement(announcementId: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/announcements/${announcementId}/cancel`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Error cancelling scheduled announcement:', error);
+        return of({ success: false, message: 'Failed to cancel scheduled announcement' });
+      })
+    );
+  }
 }

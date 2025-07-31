@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Draft Features</title>
+</head>
+<body>
+    <h1>Testing Draft Announcement Features</h1>
+    <button onclick="createDraft()">Create Draft</button>
+    <button onclick="getDrafts()">Get Drafts</button>
+    <button onclick="getStats()">Get Stats</button>
+    <div id="results"></div>
+
+    <script>
+        let token = '';
+        
+        async function login() {
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@example.com',
+                        password: '123456'
+                    })
+                });
+                const data = await response.json();
+                token = data.token;
+                console.log('Login successful, token:', token);
+                return token;
+            } catch (error) {
+                console.error('Login failed:', error);
+            }
+        }
+
+        async function createDraft() {
+            if (!token) await login();
+            
+            const draftData = {
+                title: 'Test Draft from HTML',
+                message: 'This is a test draft announcement created from HTML test page',
+                type: 'general',
+                target_audience: 'all',
+                send_methods: {
+                    email: false,
+                    in_app: true,
+                    push: false
+                },
+                status: 'draft'
+            };
+
+            try {
+                const response = await fetch('http://localhost:3001/api/communication/announcements', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(draftData)
+                });
+                const result = await response.json();
+                document.getElementById('results').innerHTML = '<h3>Create Draft Result:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Create draft failed:', error);
+            }
+        }
+
+        async function getDrafts() {
+            if (!token) await login();
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/communication/announcements/drafts', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                document.getElementById('results').innerHTML = '<h3>Draft Announcements:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Get drafts failed:', error);
+            }
+        }
+
+        async function getStats() {
+            if (!token) await login();
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/communication/announcements/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                document.getElementById('results').innerHTML = '<h3>Announcement Stats:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Get stats failed:', error);
+            }
+        }
+
+        // Auto-login when page loads
+        window.onload = function() {
+            login();
+        };
+    </script>
+</body>
+</html>

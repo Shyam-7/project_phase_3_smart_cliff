@@ -146,6 +146,47 @@ exports.getAllJobs = async (req, res) => {
   }
 };
 
+// Get all jobs for admin (including inactive)
+exports.getAllJobsForAdmin = async (req, res) => {
+  try {
+    const { 
+      sort_by = 'created_at',
+      sort_order = 'DESC',
+      search
+    } = req.query;
+
+    let query = `SELECT j.*, 
+      (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id) AS applications
+      FROM jobs j`;
+    const params = [];
+
+    // Add search functionality
+    if (search) {
+      query += ' WHERE (j.title LIKE ? OR j.company_name LIKE ? OR j.description LIKE ?)';
+      const searchParam = `%${search}%`;
+      params.push(searchParam, searchParam, searchParam);
+    }
+
+    // Add sorting
+    const validSortColumns = ['created_at', 'title', 'status', 'company_name'];
+    const validSortOrders = ['ASC', 'DESC'];
+    
+    if (validSortColumns.includes(sort_by) && validSortOrders.includes(sort_order.toUpperCase())) {
+      query += ` ORDER BY ${sort_by} ${sort_order.toUpperCase()}`;
+    } else {
+      query += ' ORDER BY created_at DESC';
+    }
+
+    console.log('🔍 Admin Jobs Query:', query, params);
+    const [rows] = await pool.query(query, params);
+    const transformedJobs = rows.map(transformJobData);
+    res.json(transformedJobs);
+  } catch (error) {
+    console.error('❌ Error fetching admin jobs:', error);
+    res.status(500).json({ message: 'Error fetching admin jobs.', error });
+  }
+};
+
 // Get a single job by its ID
 exports.getJobById = async (req, res) => {
   try {

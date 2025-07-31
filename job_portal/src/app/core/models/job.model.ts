@@ -1,4 +1,5 @@
 export interface Job {
+  applications?: number; // Number of applications for this job
   id: string; // UUID
   title: string;
   company?: string; // For backward compatibility

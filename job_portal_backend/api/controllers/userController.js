@@ -141,12 +141,12 @@ exports.getAllUsers = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT u.id, u.name, u.email, u.role, u.status, u.created_at,
-             p.phone_number, p.bio, p.skills
+             p.phone_number, p.bio, p.skills,
+             (SELECT COUNT(*) FROM applications a WHERE a.user_id = u.id) AS applications
       FROM users u
       LEFT JOIN job_seeker_profiles p ON u.id = p.user_id
       ORDER BY u.created_at DESC
     `);
-    
     res.json(rows);
   } catch (error) {
     console.error('Error fetching users:', error);

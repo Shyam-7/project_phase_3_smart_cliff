@@ -51,7 +51,7 @@ export class UserManagementComponent implements OnInit {
     this.isLoading = true;
     this.userService.getAllUsers().subscribe({
       next: (users) => {
-        // Transform the data to match our interface
+        // Use the real applications count from backend
         this.users = users.map(user => ({
           id: user.id,
           name: user.name,
@@ -59,7 +59,7 @@ export class UserManagementComponent implements OnInit {
           role: this.normalizeRole(user.role),
           status: this.normalizeStatus(user.status),
           created_at: user.created_at,
-          applications: 0 // Will be populated later if needed
+          applications: user.applications !== undefined ? user.applications : 0
         }));
         this.filteredUsers = [...this.users];
         this.filterUsers();

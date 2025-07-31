@@ -30,6 +30,14 @@ export class JobService {
     return this.http.get<Job[]>(this.apiUrl);
   }
 
+  // Get all jobs for admin (including inactive)
+  getAllJobsForAdmin(): Observable<Job[]> {
+    const timestamp = new Date().getTime();
+    return this.http.get<Job[]>(`${this.apiUrl}/admin/all?_t=${timestamp}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   getJobsWithFilters(params: any): Observable<Job[]> {
     return this.http.get<Job[]>(this.apiUrl, { params });
   }

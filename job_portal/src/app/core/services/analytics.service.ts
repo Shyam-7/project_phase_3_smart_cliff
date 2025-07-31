@@ -83,11 +83,21 @@ export class AnalyticsService {
 
   getAnalyticsOverview(): Observable<AnalyticsData> {
     const headers = this.getAuthHeaders();
-    return this.http.get<ApiResponse<AnalyticsData>>(`${this.apiUrl}/analytics/overview`, { headers })
+    // Add cache-busting parameter to ensure fresh data
+    const timestamp = new Date().getTime();
+    return this.http.get<ApiResponse<AnalyticsData>>(`${this.apiUrl}/analytics/overview?_t=${timestamp}`, { headers })
       .pipe(
-        map(response => response.data),
+        map(response => {
+          console.log('Analytics API Response:', response);
+          return response.data;
+        }),
         catchError(error => {
           console.error('Analytics overview API error:', error);
+          console.error('Error details:', {
+            status: error.status,
+            message: error.message,
+            url: error.url
+          });
           // Return mock data as fallback
           return of({
             totalUsers: 0,
@@ -105,7 +115,8 @@ export class AnalyticsService {
 
   getJobCategoriesData(): Observable<JobCategoryData[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<ApiResponse<JobCategoryData[]>>(`${this.apiUrl}/analytics/job-categories`, { headers })
+    const timestamp = new Date().getTime();
+    return this.http.get<ApiResponse<JobCategoryData[]>>(`${this.apiUrl}/analytics/job-categories?_t=${timestamp}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -117,7 +128,8 @@ export class AnalyticsService {
 
   getApplicationStatusData(): Observable<ApplicationStatusData[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<ApiResponse<ApplicationStatusData[]>>(`${this.apiUrl}/analytics/application-status`, { headers })
+    const timestamp = new Date().getTime();
+    return this.http.get<ApiResponse<ApplicationStatusData[]>>(`${this.apiUrl}/analytics/application-status?_t=${timestamp}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -129,7 +141,8 @@ export class AnalyticsService {
 
   getMonthlyTrends(months: number = 6): Observable<MonthlyTrend[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<ApiResponse<MonthlyTrend[]>>(`${this.apiUrl}/analytics/monthly-trends?months=${months}`, { headers })
+    const timestamp = new Date().getTime();
+    return this.http.get<ApiResponse<MonthlyTrend[]>>(`${this.apiUrl}/analytics/monthly-trends?months=${months}&_t=${timestamp}`, { headers })
       .pipe(
         map(response => response.data),
         catchError(error => {

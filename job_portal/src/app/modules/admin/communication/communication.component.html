@@ -72,21 +72,30 @@
                 <div class="text-sm text-gray-600">Total announcements</div>
                 <div class="flex space-x-2">
                     <button (click)="toggleAnnouncementHistory()" 
-                            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        {{ showAnnouncementHistory ? 'Hide' : 'Show' }} Announcement History
+                            class="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <span>{{ showAnnouncementHistory ? 'Hide' : 'Show' }} Announcement History</span>
+                        <svg class="ml-2 h-4 w-4 transition-transform duration-200" 
+                             [class.rotate-180]="showAnnouncementHistory"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <button (click)="showCreateForm = true" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Create Announcement
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Trigger Notifications -->
+        <!-- Send Custom Messages -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center mb-4">
                 <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-5-5 5-5h-5l-5 5 5 5z"></path>
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                 </svg>
-                <h3 class="text-lg font-semibold">Trigger notifications</h3>
+                <h3 class="text-lg font-semibold">Send Custom Messages</h3>
             </div>
             <div class="space-y-4">
                 <div class="text-4xl font-bold">{{ stats.active_notifications }}</div>
@@ -99,6 +108,24 @@
                     <div class="bg-blue-50 p-2 rounded">
                         <div class="font-semibold text-blue-800">{{ stats.scheduled_announcements }}</div>
                         <div class="text-blue-600">Scheduled</div>
+                        <button *ngIf="stats.scheduled_announcements > 0" 
+                                (click)="showScheduledAnnouncements = !showScheduledAnnouncements"
+                                class="text-xs text-blue-700 hover:text-blue-900 mt-1">
+                            {{ showScheduledAnnouncements ? 'Hide' : 'View' }} Scheduled
+                        </button>
+                    </div>
+                    <div class="bg-yellow-50 p-2 rounded">
+                        <div class="font-semibold text-yellow-800">{{ stats.draft_announcements }}</div>
+                        <div class="text-yellow-600">Drafts</div>
+                        <button *ngIf="stats.draft_announcements > 0" 
+                                (click)="toggleDraftAnnouncements()"
+                                class="text-xs text-yellow-700 hover:text-yellow-900 mt-1">
+                            {{ showDraftAnnouncements ? 'Hide' : 'View' }} Drafts
+                        </button>
+                    </div>
+                    <div class="bg-gray-50 p-2 rounded">
+                        <div class="font-semibold text-gray-800">{{ stats.total_announcements }}</div>
+                        <div class="text-gray-600">Total</div>
                     </div>
                 </div>
             </div>
@@ -147,25 +174,103 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- CREATE ANNOUNCEMENT FORM SECTION -->
+    <!-- SCHEDULED ANNOUNCEMENTS SECTION -->
     <!-- ============================================ -->
-    <div class="bg-white rounded-lg shadow">
-        <!-- Form Header -->
+    <div *ngIf="showScheduledAnnouncements" class="mb-8 bg-white rounded-lg shadow">
         <div class="p-6 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-semibold">
-                        Create Platform-wide Announcements
-                    </h3>
-                    <p class="text-sm text-gray-600">
-                        Send announcements to selected audience groups
-                    </p>
+            <h3 class="text-lg font-semibold">Scheduled Announcements</h3>
+            <p class="text-sm text-gray-600">Manage and edit scheduled announcements</p>
+        </div>
+        <div class="p-6">
+            <div *ngIf="scheduledAnnouncements.length === 0" class="text-center py-8 text-gray-500">
+                No scheduled announcements found
+            </div>
+            <div *ngIf="scheduledAnnouncements.length > 0" class="space-y-4">
+                <div *ngFor="let announcement of scheduledAnnouncements" 
+                     class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ announcement.title }}</h4>
+                        <div class="flex space-x-2">
+                            <button (click)="editScheduledAnnouncement(announcement)" 
+                                    class="text-sm text-blue-600 hover:text-blue-800">
+                                Edit
+                            </button>
+                            <button (click)="cancelScheduledAnnouncement(announcement.id?.toString() || '')" 
+                                    class="text-sm text-red-600 hover:text-red-800">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">{{ announcement.message }}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>Target: {{ announcement.target_audience | titlecase }}</span>
+                        <span>Scheduled: {{ formatDate(announcement.scheduled_at || announcement.created_at) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Form Content -->
-        <form [formGroup]="announcementForm" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
+    <!-- ============================================ -->
+    <!-- DRAFT ANNOUNCEMENTS SECTION -->
+    <!-- ============================================ -->
+    <div *ngIf="showDraftAnnouncements" class="mb-8 bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold">Draft Announcements</h3>
+            <p class="text-sm text-gray-600">Edit and manage draft announcements</p>
+        </div>
+        <div class="p-6">
+            <div *ngIf="draftAnnouncements.length === 0" class="text-center py-8 text-gray-500">
+                No draft announcements found
+            </div>
+            <div *ngIf="draftAnnouncements.length > 0" class="space-y-4">
+                <div *ngFor="let announcement of draftAnnouncements" 
+                     class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ announcement.title }}</h4>
+                        <div class="flex space-x-2">
+                            <button (click)="editDraftAnnouncement(announcement)" 
+                                    class="text-sm text-blue-600 hover:text-blue-800">
+                                Edit
+                            </button>
+                            <button (click)="deleteDraftAnnouncement(announcement.id?.toString() || '')" 
+                                    class="text-sm text-red-600 hover:text-red-800">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">{{ announcement.message }}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>Target: {{ announcement.target_audience | titlecase }}</span>
+                        <span>Last modified: {{ formatDate(announcement.updated_at || announcement.created_at) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- CREATE ANNOUNCEMENT MODAL -->
+    <!-- ============================================ -->
+    <div *ngIf="showCreateForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">
+                        {{ editingAnnouncement ? 'Edit Announcement' : 'Create Platform-wide Announcement' }}
+                    </h3>
+                    <button (click)="closeCreateForm()" class="p-1 hover:bg-gray-100 rounded">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600 mt-1">
+                    {{ editingAnnouncement ? 'Update announcement details' : 'Send announcements to selected audience groups' }}
+                </p>
+            </div>
+
+            <form [formGroup]="announcementForm" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
             <!-- Announcement Title -->
             <div class="space-y-2">
                 <label class="text-sm font-medium text-gray-700">Announcement Title *</label>
@@ -262,16 +367,22 @@
                 <button type="submit" 
                         [disabled]="isSubmitting"
                         class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg transition-colors">
-                    <span *ngIf="isSubmitting">Sending...</span>
-                    <span *ngIf="!isSubmitting">Send Now</span>
+                    <span *ngIf="isSubmitting">{{ editingAnnouncement ? 'Updating...' : 'Sending...' }}</span>
+                    <span *ngIf="!isSubmitting">{{ editingAnnouncement ? 'Update' : 'Send Now' }}</span>
                 </button>
                 <button type="button"
                         (click)="saveDraft()"
                         [disabled]="isSubmitting"
                         class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 transition-colors">
-                    Save as draft
+                    {{ editingAnnouncement ? 'Save Changes' : 'Save as draft' }}
+                </button>
+                <button type="button"
+                        (click)="closeCreateForm()"
+                        class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>

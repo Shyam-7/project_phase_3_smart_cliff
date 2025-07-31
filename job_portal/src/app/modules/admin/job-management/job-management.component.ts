@@ -13,6 +13,9 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./job-management.component.css']
 })
 export class JobManagementComponent {
+  get totalApplications(): number {
+    return this.jobs.reduce((sum, job) => sum + (job.applications || 0), 0);
+  }
   jobs: Job[] = [];
   filteredJobs: Job[] = [];
   selectedJob: Job | null = null;
@@ -21,6 +24,19 @@ export class JobManagementComponent {
   tagsInput = '';
   isSaving = false;
 
+  // Add computed properties for job statistics
+  get activeJobsCount(): number {
+    return this.jobs.filter(job => job.status === 'active').length;
+  }
+
+  get inactiveJobsCount(): number {
+    return this.jobs.filter(job => job.status === 'inactive').length;
+  }
+
+  get totalJobsCount(): number {
+    return this.jobs.length;
+  }
+
   constructor(private jobService: JobService) {}
 
   ngOnInit(): void {
@@ -28,9 +44,20 @@ export class JobManagementComponent {
   }
 
   loadJobs(): void {
-    this.jobService.getJobs().subscribe(jobs => {
-      this.jobs = jobs;
-      this.filteredJobs = [...jobs];
+    this.jobService.getAllJobsForAdmin().subscribe({
+      next: (jobs) => {
+        this.jobs = jobs;
+        this.filteredJobs = [...jobs];
+        console.log('Loaded jobs for admin:', jobs.length);
+      },
+      error: (error) => {
+        console.error('Error loading jobs:', error);
+        // Fallback to regular endpoint if admin endpoint fails
+        this.jobService.getJobs().subscribe(jobs => {
+          this.jobs = jobs;
+          this.filteredJobs = [...jobs];
+        });
+      }
     });
   }
 

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Analytics API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { padding: 10px; margin: 5px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .metric { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ddd; }
+        .growth { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Analytics API Test</h1>
+    
+    <div class="section">
+        <h2>Test Analytics Overview</h2>
+        <button onclick="testAnalyticsOverview()">Load Analytics Data</button>
+        <div id="analyticsResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Test Job Categories</h2>
+        <button onclick="testJobCategories()">Load Job Categories</button>
+        <div id="categoriesResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Test Application Status</h2>
+        <button onclick="testApplicationStatus()">Load Application Status</button>
+        <div id="statusResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api/analytics';
+        
+        // Mock token for testing - replace with real token
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczNzU0MzgyNn0.rHOO9gvP_RryAqvZDu6j0Y13jqYJNmlEhd0TLkSVA7I';
+        
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+        
+        async function testAnalyticsOverview() {
+            try {
+                console.log('Fetching analytics overview...');
+                const response = await fetch(`${API_BASE}/overview`, {
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Analytics data received:', data);
+                
+                if (data.success) {
+                    const analytics = data.data;
+                    document.getElementById('analyticsResult').innerHTML = `
+                        <h3>Analytics Overview</h3>
+                        <div class="metric">
+                            <strong>Total Users:</strong> ${analytics.totalUsers}
+                            <span class="growth">↗️ ${analytics.userGrowth}% from last month</span>
+                        </div>
+                        <div class="metric">
+                            <strong>Active Jobs:</strong> ${analytics.activeJobs}
+                            <span class="growth">↗️ ${analytics.jobGrowth}% from last month</span>
+                        </div>
+                        <div class="metric">
+                            <strong>Total Applications:</strong> ${analytics.totalApplications}
+                            <span class="growth">↗️ ${analytics.applicationGrowth}% from last month</span>
+                        </div>
+                        <div class="metric">
+                            <strong>User Visits:</strong> ${analytics.userVisits}
+                            <span class="growth">↗️ ${analytics.visitGrowth.toFixed(1)}% from last month</span>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('analyticsResult').innerHTML = `<div style="color: red;">Error: ${data.message}</div>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('analyticsResult').innerHTML = `<div style="color: red;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testJobCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/job-categories`, {
+                    headers: getHeaders()
+                });
+                const data = await response.json();
+                document.getElementById('categoriesResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('categoriesResult').innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testApplicationStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/application-status`, {
+                    headers: getHeaders()
+                });
+                const data = await response.json();
+                document.getElementById('statusResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('statusResult').innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        // Auto-load analytics on page load
+        window.addEventListener('load', testAnalyticsOverview);
+    </script>
+</body>
+</html>

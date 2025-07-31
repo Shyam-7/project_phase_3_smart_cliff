@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { AnalyticsService, AnalyticsData, JobCategoryData, ApplicationStatusData, MonthlyTrend, ConversionData, TopJob } from '../../../core/services/analytics.service';
@@ -10,7 +10,7 @@ import { AnalyticsService, AnalyticsData, JobCategoryData, ApplicationStatusData
   templateUrl: './analytics.component.html',
   styleUrls: ['./analytics.component.css']
 })
-export class AnalyticsComponent implements OnInit, AfterViewInit {
+export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('statusChart') statusChartRef!: ElementRef;
   @ViewChild('categoriesChart') categoriesChartRef!: ElementRef;
   @ViewChild('monthlyTrendsChart') monthlyTrendsChartRef!: ElementRef;
@@ -25,6 +25,10 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   isLoading = true;
   error: string | null = null;
 
+  // Auto-refresh properties
+  private refreshInterval: any;
+  private readonly REFRESH_INTERVAL_MS = 30000; // 30 seconds
+  
   // Chart instances
   private statusChart: Chart | null = null;
   private categoriesChart: Chart | null = null;
@@ -34,11 +38,34 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadAnalyticsData();
+    this.startAutoRefresh();
   }
 
   ngAfterViewInit(): void {
     Chart.register(...registerables);
     // Charts will be created after data is loaded
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+    // Clean up charts
+    if (this.statusChart) this.statusChart.destroy();
+    if (this.categoriesChart) this.categoriesChart.destroy();
+    if (this.monthlyTrendsChart) this.monthlyTrendsChart.destroy();
+  }
+
+  private startAutoRefresh(): void {
+    this.refreshInterval = setInterval(() => {
+      console.log('Auto-refreshing analytics data...');
+      this.loadAnalyticsData();
+    }, this.REFRESH_INTERVAL_MS);
+  }
+
+  private stopAutoRefresh(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
   }
 
   private loadAnalyticsData(): void {
@@ -278,8 +305,11 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   }
 
   refreshData(): void {
-    console.log('Refreshing analytics data...');
+    console.log('Manual refresh triggered...');
+    this.stopAutoRefresh(); // Stop auto-refresh temporarily
     this.loadAnalyticsData();
+    // Restart auto-refresh after manual refresh
+    setTimeout(() => this.startAutoRefresh(), 1000);
   }
 
   exportReport(type: 'pdf' | 'excel' = 'pdf'): void {

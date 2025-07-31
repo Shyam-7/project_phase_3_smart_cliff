@@ -1,0 +1,6 @@
+/* Make all cards the same height and align actions at the bottom */
+.grid > div {
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+}
