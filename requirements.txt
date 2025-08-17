@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+mysql-connector-python
+python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]
+pytest
+requests
+httpx
